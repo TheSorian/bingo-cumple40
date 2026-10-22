@@ -97,7 +97,9 @@
 
   .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
   button{font-family:inherit;font-size:15px;font-weight:800;border-radius:14px;border:1px solid var(--line);
-         background:rgba(255,255,255,.07);color:var(--text);padding:12px 18px;cursor:pointer;transition:.18s}
+         background:rgba(255,255,255,.07);color:var(--text);padding:12px 18px;cursor:pointer;transition:.18s;
+         display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  button svg{flex:none}
   button:hover{transform:translateY(-1px);background:rgba(255,255,255,.12)}
   button:active{transform:translateY(1px) scale(.99)}
   button:focus{outline:none}
@@ -212,11 +214,11 @@
 
       <div class="player">
         <div class="ptabs">
-          <button class="ptab on" id="tabSpoti" aria-pressed="true" title="Preview de 30 s de Spotify">🎧 Spotify · 30 s</button>
+          <button class="ptab on" id="tabSpoti" aria-pressed="true" title="Preview de 30 s de Spotify"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg> Spotify · 30 s</button>
           <button class="ptab" id="tabYt" aria-pressed="false" title="Vídeo de YouTube">▶ YouTube</button>
         </div>
         <div class="pane" id="paneSpoti">
-          <button class="play" id="play" title="Reproducir 30 s" disabled>▶</button>
+          <button class="play" id="play" title="Reproducir 30 s" disabled><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
           <div class="pbar" id="pbar" title="Avanzar en el preview"><span id="pfill"></span></div>
           <span class="ptime" id="ptime">0:00</span>
           <button class="mini-btn" id="replay" title="Volver a empezar" disabled>↻</button>
@@ -230,10 +232,10 @@
       <div class="actions">
         <button class="primary" id="next">▶ Empezar</button>
         <button class="ghost" id="prev" disabled>↩ Anterior</button>
-        <button class="ghost" id="shuffle" title="Cambia el orden aleatorio y vuelve a empezar">🔀 Nueva partida</button>
+        <button class="ghost" id="shuffle" title="Cambia el orden aleatorio y vuelve a empezar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="m4 4 5 5"/></svg> Nueva partida</button>
         <button class="ghost" id="reset" title="Vuelve a empezar con el mismo orden">↺ Reiniciar</button>
       </div>
-      <p class="hint" style="margin-top:10px">🔀 <b>Nueva partida</b> mezcla las canciones · ↺ <b>Reiniciar</b> repite el mismo orden.</p>
+      <p class="hint" style="margin-top:10px"><b>Nueva partida</b> mezcla las canciones · <b>Reiniciar</b> repite el mismo orden.</p>
 
       <div class="bar"><span id="bar"></span></div>
       <div class="meta"><span id="pct">0%</span><span id="left"></span></div>
@@ -556,12 +558,16 @@ function setModo(m){
   guardar();
 }
 
+const ICONO_PLAY = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+const ICONO_PAUSA = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg>';
+function iconoPlay(sonando){ $("play").innerHTML = sonando ? ICONO_PAUSA : ICONO_PLAY; }
+
 function cargarAudio(c){
   audio.pause();
   audio.removeAttribute("src");
   audio.load();
   durAudio = 0;
-  $("play").textContent = "▶";
+  iconoPlay(false);
   $("play").disabled = true;
   $("replay").disabled = true;
   $("pfill").style.width = "0%";
@@ -589,9 +595,9 @@ function cargarAudio(c){
   if(modo === "youtube") montarYoutube(c);
 }
 
-audio.addEventListener("play", () => { $("play").textContent = "⏸"; });
-audio.addEventListener("pause", () => { $("play").textContent = "▶"; });
-audio.addEventListener("ended", () => { $("play").textContent = "▶"; pintarTiempo(); });
+audio.addEventListener("play", () => { iconoPlay(true); });
+audio.addEventListener("pause", () => { iconoPlay(false); });
+audio.addEventListener("ended", () => { iconoPlay(false); pintarTiempo(); });
 audio.addEventListener("timeupdate", pintarTiempo);
 audio.addEventListener("loadedmetadata", () => { durAudio = audio.duration; pintarTiempo(); });
 audio.addEventListener("error", () => {
