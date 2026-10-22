@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bingo Musical · Cumple 40</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎂</text></svg>">
+<style>
+  :root{
+    --bg:#120a1f; --panel:rgba(255,255,255,.055); --panel-solid:#1b1229; --line:rgba(255,255,255,.12);
+    --text:#f7f4ff; --muted:#a99cc4;
+    --pink:#ff4d80; --orange:#ff9f1c; --teal:#00e0c0; --blue:#5a8cff; --violet:#b46bff;
+    --gold:#ffd166;
+    --font:"Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{min-height:100%}
+  body{
+    margin:0;color:var(--text);font-family:var(--font);padding:18px 18px 70px;
+    background:linear-gradient(130deg,#1a0a2e 0%,#2a0a3d 22%,#0d1b3d 48%,#07222b 72%,#1a0a2e 100%);
+    background-size:300% 300%;animation:fondo 26s ease-in-out infinite;
+    overflow-x:hidden;
+  }
+  @keyframes fondo{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+  /* confeti flotante de fondo */
+  #floaters{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+  .floater{position:absolute;top:-8vh;font-size:22px;opacity:.32;animation:caer linear infinite;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+  @keyframes caer{
+    0%{transform:translate3d(0,-10vh,0) rotate(0deg)}
+    100%{transform:translate3d(40px,115vh,0) rotate(320deg)}
+  }
+  #burst{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+  .conf{position:absolute;width:10px;height:14px;border-radius:2px;will-change:transform,opacity;
+        animation:estallar 1.9s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes estallar{
+    0%{transform:translate3d(0,0,0) rotate(0) scale(1);opacity:1}
+    100%{transform:translate3d(var(--dx),var(--dy),0) rotate(var(--rot)) scale(.7);opacity:0}
+  }
+
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto}
+
+  /* cabecera */
+  header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:14px;min-width:0}
+  .cake{font-size:44px;line-height:1;animation:flotar 4s ease-in-out infinite}
+  @keyframes flotar{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-8px) rotate(4deg)}}
+  h1{font-size:clamp(24px,3.4vw,34px);margin:0;line-height:1.05;letter-spacing:-.5px;
+     background:linear-gradient(90deg,var(--pink),var(--orange),var(--gold),var(--teal),var(--blue),var(--violet));
+     background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+     animation:brillo 8s linear infinite;font-weight:900}
+  @keyframes brillo{to{background-position:300% 0}}
+  .sub{margin:4px 0 0;color:var(--muted);font-size:13px}
+  .badge{background:var(--panel);border:1px solid var(--line);padding:9px 15px;border-radius:14px;font-size:13px;
+         color:var(--muted);backdrop-filter:blur(8px);white-space:nowrap}
+  .badge b{color:var(--text);font-variant-numeric:tabular-nums}
+  .badge .sep{opacity:.7;margin:0 2px}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.85fr);gap:16px;align-items:start}
+  @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:20px;
+        backdrop-filter:blur(10px);box-shadow:0 18px 40px rgba(0,0,0,.28);min-width:0}
+  .label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:700}
+
+  .now{display:flex;gap:18px;align-items:center;min-height:136px}
+  .num{font-size:54px;font-weight:900;line-height:1;min-width:78px;text-align:center;
+       font-variant-numeric:tabular-nums;
+       background:linear-gradient(180deg,var(--gold),var(--orange));
+       -webkit-background-clip:text;background-clip:text;color:transparent}
+  .now.empty .num{background:linear-gradient(180deg,#6d6382,#4a4357);-webkit-background-clip:text;background-clip:text}
+  .song-title{font-size:clamp(21px,3.2vw,32px);font-weight:900;margin:0;line-height:1.13;letter-spacing:-.4px;overflow-wrap:anywhere}
+  .song-artist{color:var(--muted);margin:7px 0 0;font-size:15px}
+  .now.empty .song-title{color:var(--muted);font-size:20px;font-weight:700}
+  .pop{animation:pop .42s cubic-bezier(.2,1.3,.4,1)}
+  @keyframes pop{0%{transform:scale(.94);opacity:.25;filter:blur(3px)}100%{transform:scale(1);opacity:1;filter:blur(0)}}
+
+  /* reproductor */
+  .player{margin-top:16px;padding:10px 12px;background:rgba(0,0,0,.30);
+          border:1px solid var(--line);border-radius:16px}
+  .ptabs{display:flex;gap:8px}
+  .ptab{flex:1;padding:8px 10px;font-size:12px;font-weight:800;border-radius:10px;
+        border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--muted);cursor:pointer}
+  .ptab.on{color:#04231f;border-color:transparent;
+           background:linear-gradient(135deg,var(--teal),#57d0ff)}
+  .ptab:disabled{opacity:.35;cursor:not-allowed}
+  .pane{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .pane[hidden]{display:none}
+  .play{width:46px;height:46px;border-radius:50%;border:none;flex:none;padding:0;font-size:17px;
+        display:grid;place-items:center;color:#04231f;
+        background:linear-gradient(135deg,var(--teal),#57d0ff);box-shadow:0 6px 18px rgba(0,224,192,.25)}
+  .play:hover{transform:scale(1.06)}
+  .play:disabled{opacity:.3;box-shadow:none;transform:none}
+  .pbar{flex:1;min-width:80px;height:9px;border-radius:99px;background:rgba(255,255,255,.12);
+        overflow:hidden;cursor:pointer}
+  .pbar span{display:block;height:100%;width:0;border-radius:99px;
+             background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .12s linear}
+  .ptime{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:70px;text-align:right}
+  .mini-btn{width:34px;height:34px;padding:0;border-radius:10px;font-size:14px;flex:none;
+            display:grid;place-items:center;background:rgba(255,255,255,.07)}
+  .ytbox{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+  .ytbox iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .ytmsg{margin:0;padding:20px 12px;color:var(--muted);font-size:13px;text-align:center;line-height:1.6}
+  .ytmsg a{color:var(--teal);font-weight:800}
+
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  button{font-family:inherit;font-size:15px;font-weight:800;border-radius:14px;border:1px solid var(--line);
+         background:rgba(255,255,255,.07);color:var(--text);padding:12px 18px;cursor:pointer;transition:.18s}
+  button:hover{transform:translateY(-1px);background:rgba(255,255,255,.12)}
+  button:active{transform:translateY(1px) scale(.99)}
+  button:focus{outline:none}
+  button:focus-visible{outline:2px solid rgba(255,255,255,.85);outline-offset:3px}
+  button.primary{background:linear-gradient(120deg,var(--pink),var(--violet) 55%,var(--blue));border:none;
+                 color:#fff;font-size:17px;padding:15px 26px;flex:1;min-width:210px;
+                 box-shadow:0 10px 30px rgba(255,77,128,.35);animation:latido 2.6s ease-in-out infinite}
+  @keyframes latido{0%,100%{box-shadow:0 10px 26px rgba(255,77,128,.30)}50%{box-shadow:0 14px 40px rgba(180,107,255,.55)}}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.32;cursor:not-allowed;transform:none;animation:none;box-shadow:none}
+
+  .bar{height:12px;background:rgba(0,0,0,.35);border-radius:99px;overflow:hidden;margin-top:20px;border:1px solid var(--line)}
+  .bar span{display:block;height:100%;width:0;border-radius:99px;
+            background:linear-gradient(90deg,var(--teal),var(--blue),var(--violet),var(--pink));
+            background-size:200% 100%;animation:brillo 3s linear infinite;transition:width .3s}
+  .meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:8px}
+  .nextup{margin-top:16px;padding:12px 15px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:14px;
+          background:rgba(255,255,255,.03)}
+  .nextup b{color:var(--text)}
+  .hint{color:var(--muted);font-size:12px;margin-top:12px;line-height:1.6}
+  kbd{background:rgba(255,255,255,.08);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px;font-size:11px}
+
+  h2{font-size:15px;margin:0 0 14px;letter-spacing:.2px}
+  select,input[type=search]{width:100%;background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--text);
+        border-radius:12px;padding:12px;font-family:inherit;font-size:14px;outline:none;transition:.15s}
+  select:focus,input[type=search]:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(180,107,255,.2)}
+
+  .mini{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:14px}
+  .mini .cell{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:9px;min-height:66px;padding:5px 4px;
+        font-size:9px;line-height:1.14;display:flex;flex-direction:column;justify-content:center;text-align:center;color:#d8d0ea;
+        transition:.2s;overflow:hidden;min-width:0}
+  .mini .cell .t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .mini .cell .a{color:#8e82a8;font-size:7.6px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .mini .cell.done{background:linear-gradient(160deg,rgba(0,224,192,.28),rgba(90,140,255,.22));
+        border-color:rgba(0,224,192,.75);color:#ffffff;box-shadow:0 0 12px rgba(0,224,192,.18) inset}
+  .mini .cell.done .a{color:#b6f5ea}
+  .mini .cell.free{background:linear-gradient(160deg,rgba(255,209,102,.26),rgba(255,77,128,.2));
+        border-color:rgba(255,209,102,.7);color:var(--gold);font-weight:800}
+  .mini .cell.win{outline:2px solid var(--gold);outline-offset:-2px;animation:ganadora 1.1s ease-in-out infinite alternate}
+  @keyframes ganadora{from{box-shadow:0 0 0 rgba(255,209,102,.0)}to{box-shadow:0 0 16px rgba(255,209,102,.65)}}
+
+  .status{margin-top:14px;padding:13px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line);
+          font-size:14px;color:var(--muted);line-height:1.45}
+  .status b{color:var(--text)}
+  .status.ok{border-color:var(--gold);background:linear-gradient(120deg,rgba(255,209,102,.16),rgba(255,77,128,.14));
+             color:var(--gold);font-weight:700;animation:ganadora 1.3s ease-in-out infinite alternate}
+
+  .list{max-height:300px;overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.18)}
+  .row{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;align-items:center}
+  .row:last-child{border-bottom:none}
+  .row .n{color:var(--muted);width:26px;font-variant-numeric:tabular-nums}
+  .row .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .ar{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+  .row.done .t{color:#7d7394;text-decoration:line-through}
+  .row.now{background:linear-gradient(90deg,rgba(255,77,128,.16),rgba(180,107,255,.1))}
+  .row .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);flex:none}
+  .row.done .dot{background:var(--teal);box-shadow:0 0 8px var(--teal)}
+
+  .foot{margin-top:24px;text-align:center;color:#6b6085;font-size:12px}
+
+  @media (max-width:520px){
+    body{padding:12px 12px 55px}
+    .card{padding:16px;border-radius:18px}
+    .cake{font-size:34px}
+    .badge{white-space:normal;font-size:12px}
+    .now{gap:12px}
+    .num{font-size:44px;min-width:60px}
+    .actions button{padding:11px 14px}
+    .actions button.primary{min-width:100%}
+    .mini .cell{min-height:58px;font-size:8.4px}
+    .mini{gap:4px}
+    .ptabs{gap:6px}
+    .ptab{font-size:11px;padding:7px 8px}
+    .pane{gap:8px;margin-top:8px}
+    .play{width:42px;height:42px}
+    .ptime{min-width:62px;font-size:10px}
+  }
+
+  .recent .r{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.09)}
+  .recent .r:last-child{border-bottom:none}
+  .recent .rn{color:var(--gold);font-weight:900;width:26px;font-variant-numeric:tabular-nums}
+  .recent .rt{font-size:13.5px;font-weight:700;line-height:1.25;min-width:0}
+  .recent .rt em{display:block;font-style:italic;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
+  .recent .vacio{color:var(--muted);font-size:13px;margin:0}
+</style>
+</head>
+<body>
+<div id="floaters"></div>
+<div id="burst"></div>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="cake">🎂</div>
+      <div style="min-width:0">
+        <h1>Bingo Musical · <span id="plName">Cumple 40</span></h1>
+        <p class="sub">Panel del presentador · una pulsación por canción 🎵</p>
+      </div>
+    </div>
+    <div class="badge">🎤 Sonando <b id="cnt">0</b><span class="sep"> de </span><b id="tot">0</b> · 🎟️ Cartón <b id="cardNum">–</b></div>
+  </header>
+
+  <div class="grid">
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+    <section class="card">
+      <p class="label">🎶 Canción actual</p>
+      <div class="now empty" id="now">
+        <div class="num" id="num">—</div>
+        <div style="min-width:0">
+          <h2 class="song-title" id="title" style="font-size:20px">Todo listo para empezar</h2>
+          <p class="song-artist" id="artist">Pulsa «Empezar» y dale al play</p>
+        </div>
+      </div>
+
+      <div class="player">
+        <div class="ptabs">
+          <button class="ptab on" id="tabSpoti" aria-pressed="true" title="Preview de 30 s de Spotify">🎧 Spotify · 30 s</button>
+          <button class="ptab" id="tabYt" aria-pressed="false" title="Vídeo de YouTube">▶ YouTube</button>
+        </div>
+        <div class="pane" id="paneSpoti">
+          <button class="play" id="play" title="Reproducir 30 s" disabled>▶</button>
+          <div class="pbar" id="pbar" title="Avanzar en el preview"><span id="pfill"></span></div>
+          <span class="ptime" id="ptime">0:00</span>
+          <button class="mini-btn" id="replay" title="Volver a empezar" disabled>↻</button>
+        </div>
+        <div class="pane" id="paneYt" hidden>
+          <div class="ytbox" id="ytbox"><p class="ytmsg">Elige una canción</p></div>
+        </div>
+      </div>
+      <audio id="audio" preload="none"></audio>
+
+      <div class="actions">
+        <button class="primary" id="next">▶ Empezar</button>
+        <button class="ghost" id="prev" disabled>↩ Anterior</button>
+        <button class="ghost" id="shuffle" title="Cambia el orden aleatorio y vuelve a empezar">🔀 Nueva partida</button>
+        <button class="ghost" id="reset" title="Vuelve a empezar con el mismo orden">↺ Reiniciar</button>
+      </div>
+      <p class="hint" style="margin-top:10px">🔀 <b>Nueva partida</b> mezcla las canciones · ↺ <b>Reiniciar</b> repite el mismo orden.</p>
+
+      <div class="bar"><span id="bar"></span></div>
+      <div class="meta"><span id="pct">0%</span><span id="left"></span></div>
+
+      <div class="nextup" id="nextup">Siguiente: <b>—</b></div>
+      <p class="hint">Atajos: <kbd>espacio</kbd> o <kbd>→</kbd> siguiente · <kbd>←</kbd> anterior · <kbd>P</kbd> reproducir · <kbd>R</kbd> reiniciar.</p>
+    </section>
+
+    <section class="card">
+      <h2>🕑 Últimas canciones</h2>
+      <div class="recent" id="recent"></div>
+    </section>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <section class="card">
+        <h2>🎟️ Comprobar cartón</h2>
+        <select id="cardSel"></select>
+        <div class="mini" id="mini"></div>
+        <div class="status" id="cardStatus">Elige un cartón para ver qué canciones le faltan.</div>
+      </section>
+
+      <section class="card">
+        <h2>🔎 ¿Ha sonado ya?</h2>
+        <input type="search" id="search" placeholder="Buscar canción o artista…">
+        <div class="list" id="list"></div>
+      </section>
+    </div>
+  </div>
+
+  <p class="foot">Generado a partir de la playlist de Spotify · orden aleatorio reproducible · ¡a cantar! 🎉</p>
+</div>
+
+<script>
+const D = {"playlist": "Cumple 40", "titulo": "Cumple 40", "filas": 5, "columnas": 5, "centroLibre": false, "canciones": [{"id": 1, "titulo": "Nochentera", "titulo_corto": "Nochentera", "artista": "Vicco", "artista_corto": "Vicco", "ms": 202184, "uri": "spotify:track:20CozgjF6bshBw8cLhN23B", "preview": "https://p.scdn.co/mp3-preview/87b1f63948a107e84c39fdef8cb6d7c164f06a20", "youtube_id": "1j_dSNUGU-U", "url": "https://open.spotify.com/track/20CozgjF6bshBw8cLhN23B"}, {"id": 2, "titulo": "El Fin del Mundo", "titulo_corto": "El Fin del Mundo", "artista": "La La Love You, Axolotes Mexicanos", "artista_corto": "La La Love You", "ms": 188093, "uri": "spotify:track:70JnnNNAxPjvZGPwjJfX47", "preview": "https://p.scdn.co/mp3-preview/217cf1fdf0106725490e8e8aa0c4445f953b8a3b", "youtube_id": "6cF6b6pLijE", "url": "https://open.spotify.com/track/70JnnNNAxPjvZGPwjJfX47"}, {"id": 3, "titulo": "Tenía Tanto Que Darte", "titulo_corto": "Tenía Tanto Que Darte", "artista": "Nena Daconte", "artista_corto": "Nena Daconte", "ms": 204560, "uri": "spotify:track:3Th2of8xIYyImVLXUbzaTp", "preview": "https://p.scdn.co/mp3-preview/6216241252ca3e5ba513a4532cd59aec1d79d602", "youtube_id": "rd8ZFtD5rM8", "url": "https://open.spotify.com/track/3Th2of8xIYyImVLXUbzaTp"}, {"id": 4, "titulo": "Princesas", "titulo_corto": "Princesas", "artista": "Pereza", "artista_corto": "Pereza", "ms": 216999, "uri": "spotify:track:3hlWUNjAlbZ6nOjAbrivBv", "preview": "https://p.scdn.co/mp3-preview/810418e0dadad7a1fcb3510f0228aba9a5a14668", "youtube_id": "A9UdCLGvjXg", "url": "https://open.spotify.com/track/3hlWUNjAlbZ6nOjAbrivBv"}, {"id": 5, "titulo": "La Revolución Sexual", "titulo_corto": "La Revolución Sexual", "artista": "La Casa Azul", "artista_corto": "La Casa Azul", "ms": 274160, "uri": "spotify:track:5zHvsFZoCzLmhbRbYDkg42", "preview": "https://p.scdn.co/mp3-preview/9b4ca3ad3549086ffc2b1157289c4dd404d57f55", "youtube_id": "n5vjW13cNr0", "url": "https://open.spotify.com/track/5zHvsFZoCzLmhbRbYDkg42"}, {"id": 6, "titulo": "Zapatillas", "titulo_corto": "Zapatillas", "artista": "El Canto Del Loco", "artista_corto": "El Canto Del Loco", "ms": 172640, "uri": "spotify:track:42VgiRyg0YjtRVLiPFNxPJ", "preview": "https://p.scdn.co/mp3-preview/73b5ecb7b405bb04a7add957841a43022d4bf9aa", "youtube_id": "nHxam-MQg-o", "url": "https://open.spotify.com/track/42VgiRyg0YjtRVLiPFNxPJ"}, {"id": 7, "titulo": "Ingobernable", "titulo_corto": "Ingobernable", "artista": "C. Tangana, Gipsy Kings, Nicolas Reyes, Tonino Baliardo", "artista_corto": "C. Tangana", "ms": 187053, "uri": "spotify:track:3SK45LddxlEkzI8OWO9Eyo", "preview": "https://p.scdn.co/mp3-preview/78cea501e3d69a142dc5c1a135988401a992bccc", "youtube_id": "UzcPKP3KipQ", "url": "https://open.spotify.com/track/3SK45LddxlEkzI8OWO9Eyo"}, {"id": 8, "titulo": "Física o química", "titulo_corto": "Física o química", "artista": "Despistaos", "artista_corto": "Despistaos", "ms": 191826, "uri": "spotify:track:79eUc9cUUoUOO1b5znphiU", "preview": "https://p.scdn.co/mp3-preview/b4c4999ae95d730f187cdf933bab4907653dabe0", "youtube_id": "6ikznQPMSv0", "url": "https://open.spotify.com/track/79eUc9cUUoUOO1b5znphiU"}, {"id": 9, "titulo": "Bailemos", "titulo_corto": "Bailemos", "artista": "Dani Fernández", "artista_corto": "Dani Fernández", "ms": 210468, "uri": "spotify:track:5EnaxC9amhXY55ezw87SL8", "preview": "https://p.scdn.co/mp3-preview/e2be05446c2883ade1181d6ce3447719e6d4a4b9", "youtube_id": "sbzX9v1wsew", "url": "https://open.spotify.com/track/5EnaxC9amhXY55ezw87SL8"}, {"id": 10, "titulo": "Una Foto en Blanco y Negro", "titulo_corto": "Una Foto en Blanco y Negro", "artista": "David Otero, Taburete", "artista_corto": "David Otero", "ms": 214093, "uri": "spotify:track:1iBZ1b5ULbGnyhq5Xhpqql", "preview": "https://p.scdn.co/mp3-preview/c64b143f162890180955be14f669f73a815a4b1b", "youtube_id": "5GaAkeaZG30", "url": "https://open.spotify.com/track/1iBZ1b5ULbGnyhq5Xhpqql"}, {"id": 11, "titulo": "Feo Fuerte y Formal", "titulo_corto": "Feo Fuerte y Formal", "artista": "Loquillo Y Los Trogloditas", "artista_corto": "Loquillo Y Los Trogloditas", "ms": 242266, "uri": "spotify:track:24w139jhWNnuQjnlhlzLvi", "preview": "https://p.scdn.co/mp3-preview/2a81034cb0465a8d1d9ea9dddfbae0898f2387e0", "youtube_id": "g3bX--H6Rms", "url": "https://open.spotify.com/track/24w139jhWNnuQjnlhlzLvi"}, {"id": 12, "titulo": "Moriría por vos", "titulo_corto": "Moriría por vos", "artista": "Amaral", "artista_corto": "Amaral", "ms": 227120, "uri": "spotify:track:2Ec0VmnItt52GPU6A9Vya3", "preview": "https://p.scdn.co/mp3-preview/1c9a7f78209b30f98af0cd2e3b8bca6e9dc7a0e0", "youtube_id": "eVc2VDQbV1o", "url": "https://open.spotify.com/track/2Ec0VmnItt52GPU6A9Vya3"}, {"id": 13, "titulo": "Cuando zarpa el amor", "titulo_corto": "Cuando zarpa el amor", "artista": "Camela", "artista_corto": "Camela", "ms": 212400, "uri": "spotify:track:0GzQB5WXavUEU8tfTCAd8m", "preview": "https://p.scdn.co/mp3-preview/85c8d3dcd4d264209ed4b4c58506b527e5999d88", "youtube_id": "eVSIjE8FIi8", "url": "https://open.spotify.com/track/0GzQB5WXavUEU8tfTCAd8m"}, {"id": 14, "titulo": "Y volar (con los Caligaris)", "titulo_corto": "Y volar", "artista": "La Pegatina, Los Caligaris", "artista_corto": "La Pegatina", "ms": 189600, "uri": "spotify:track:0vabIwEiZDGml2CyVmGNBX", "preview": "https://p.scdn.co/mp3-preview/8a2d7c1841638213ed6bde6f85c696ba99f4714c", "youtube_id": "BOXEYOGTbFU", "url": "https://open.spotify.com/track/0vabIwEiZDGml2CyVmGNBX"}, {"id": 15, "titulo": "Antiaéreo", "titulo_corto": "Antiaéreo", "artista": "Arde Bogotá", "artista_corto": "Arde Bogotá", "ms": 184000, "uri": "spotify:track:15tDDogDQ8kOcs5b6G2bN5", "preview": "https://p.scdn.co/mp3-preview/4f87ac100501e16bf23b5aa02d842d19fdcfd39f", "youtube_id": "dTycH3871Os", "url": "https://open.spotify.com/track/15tDDogDQ8kOcs5b6G2bN5"}, {"id": 16, "titulo": "A quién le importa", "titulo_corto": "A quién le importa", "artista": "Alaska Y Dinarama", "artista_corto": "Alaska Y Dinarama", "ms": 205306, "uri": "spotify:track:7Eb5AYiiGWItBNddlmxvnh", "preview": "https://p.scdn.co/mp3-preview/2fee8066814b6b5e354acebe93c3404d2081c91e", "youtube_id": "2uQhdDtdXg0", "url": "https://open.spotify.com/track/7Eb5AYiiGWItBNddlmxvnh"}, {"id": 17, "titulo": "Ay Mamá", "titulo_corto": "Ay Mamá", "artista": "Rigoberta Bandini", "artista_corto": "Rigoberta Bandini", "ms": 181120, "uri": "spotify:track:0khVEzctbwmqLvOpg1ecbg", "preview": "https://p.scdn.co/mp3-preview/16f62cfd9492a6cc02d7af20d9a523bb65841367", "youtube_id": "dOF_SUYPMLY", "url": "https://open.spotify.com/track/0khVEzctbwmqLvOpg1ecbg"}, {"id": 18, "titulo": "Me Gustas Tu", "titulo_corto": "Me Gustas Tu", "artista": "Manu Chao", "artista_corto": "Manu Chao", "ms": 239986, "uri": "spotify:track:6b37xrsNCWYIUphFBazqD6", "preview": "https://p.scdn.co/mp3-preview/452081948f544e5d11bd27ba83b02c0b8e219917", "youtube_id": "rs6Y4kZ8qtw", "url": "https://open.spotify.com/track/6b37xrsNCWYIUphFBazqD6"}, {"id": 19, "titulo": "Libre", "titulo_corto": "Libre", "artista": "Nino Bravo", "artista_corto": "Nino Bravo", "ms": 249333, "uri": "spotify:track:1uAjXdRxH2PBCKGSWPagGJ", "preview": "https://p.scdn.co/mp3-preview/354087fa81ab9aaf5ea5e3b287facf1cfea3c3cd", "youtube_id": "4Mtri-QHIWI", "url": "https://open.spotify.com/track/1uAjXdRxH2PBCKGSWPagGJ"}, {"id": 20, "titulo": "DESPECHÁ", "titulo_corto": "DESPECHÁ", "artista": "ROSALÍA", "artista_corto": "ROSALÍA", "ms": 157017, "uri": "spotify:track:5ildQOEKmJuWGl2vRkFdYc", "preview": "https://p.scdn.co/mp3-preview/b38b4cb446595c64bfe4df58af4289c6a55fc031", "youtube_id": "5g2hT4GmAGU", "url": "https://open.spotify.com/track/5ildQOEKmJuWGl2vRkFdYc"}, {"id": 21, "titulo": "Olvídame y Pega la Vuelta", "titulo_corto": "Olvídame y Pega la Vuelta", "artista": "Pimpinela", "artista_corto": "Pimpinela", "ms": 185800, "uri": "spotify:track:4FdwRmlzP5KGM7OewGBYiu", "preview": "https://p.scdn.co/mp3-preview/f9b634da098a82f11456aa3c7ce5d0a06f5b9da5", "youtube_id": "uLvvtQnQw8s", "url": "https://open.spotify.com/track/4FdwRmlzP5KGM7OewGBYiu"}, {"id": 22, "titulo": "Hoy no Me Puedo Levantar", "titulo_corto": "Hoy no Me Puedo Levantar", "artista": "Mecano", "artista_corto": "Mecano", "ms": 200600, "uri": "spotify:track:1YiySJUtmc1VLwB8iNctaC", "preview": "https://p.scdn.co/mp3-preview/cc5a77fe6407cc84c8acd690bd778723b17b9b37", "youtube_id": "zStE005_IwQ", "url": "https://open.spotify.com/track/1YiySJUtmc1VLwB8iNctaC"}, {"id": 23, "titulo": "Vivir Así Es Morir de Amor", "titulo_corto": "Vivir Así Es Morir de Amor", "artista": "Camilo Sesto", "artista_corto": "Camilo Sesto", "ms": 210133, "uri": "spotify:track:3yzHIAzk3zVE1WgspS8W21", "preview": "https://p.scdn.co/mp3-preview/6a1dc976f54856c4e8e912cda783c4c85dea67ac", "youtube_id": "nZShzrtpq6A", "url": "https://open.spotify.com/track/3yzHIAzk3zVE1WgspS8W21"}, {"id": 24, "titulo": "Por la Raja de Tu Falda", "titulo_corto": "Por la Raja de Tu Falda", "artista": "Estopa", "artista_corto": "Estopa", "ms": 202826, "uri": "spotify:track:5OaqffbeQyVVqtnA71Ci7K", "preview": "https://p.scdn.co/mp3-preview/96a3d2d67ffcaa905caddd3bf5cf8f93eb1627ba", "youtube_id": "3gcBSOLrY4k", "url": "https://open.spotify.com/track/5OaqffbeQyVVqtnA71Ci7K"}, {"id": 25, "titulo": "La del Pirata Cojo", "titulo_corto": "La del Pirata Cojo", "artista": "Joaquín Sabina", "artista_corto": "Joaquín Sabina", "ms": 274773, "uri": "spotify:track:5YcnJNBgUcYkPyINuUb2Zb", "preview": "https://p.scdn.co/mp3-preview/fba9f911fd7d33e55c91cfe68308fef24c3d4fcf", "youtube_id": "3bF_llJBApo", "url": "https://open.spotify.com/track/5YcnJNBgUcYkPyINuUb2Zb"}, {"id": 26, "titulo": "Que Apostamos", "titulo_corto": "Que Apostamos", "artista": "Danilo Vaona, Ana Obregón, Ramon Garcia", "artista_corto": "Ana Obregón", "ms": 166840, "uri": "spotify:track:3nQn6kYVhn7x58DgIZIC9X", "preview": "https://p.scdn.co/mp3-preview/0c1d7308896d016859a18bcecab498e790d33d97", "youtube_id": "wwXv5tzTV1Q", "url": "https://open.spotify.com/track/3nQn6kYVhn7x58DgIZIC9X"}, {"id": 27, "titulo": "Mediterraneo", "titulo_corto": "Mediterraneo", "artista": "Joan Manuel Serrat", "artista_corto": "Joan Manuel Serrat", "ms": 205196, "uri": "spotify:track:7Bewui7KtaMzROeteRitRz", "preview": "https://p.scdn.co/mp3-preview/a638a0eac15c363b23608844b0e058f3af890d2a", "youtube_id": "Cx5ENAFTLZg", "url": "https://open.spotify.com/track/7Bewui7KtaMzROeteRitRz"}, {"id": 28, "titulo": "La Guitarra", "titulo_corto": "La Guitarra", "artista": "Los Auténticos Decadentes", "artista_corto": "Los Auténticos Decadentes", "ms": 218493, "uri": "spotify:track:6aPoVnA9UDncMyKgTAicsO", "preview": "https://p.scdn.co/mp3-preview/243c77926f2d8ce3e357fd8d4a6762b797f1e51c", "youtube_id": "ID-iJOw9rLo", "url": "https://open.spotify.com/track/6aPoVnA9UDncMyKgTAicsO"}, {"id": 29, "titulo": "Mi gran noche", "titulo_corto": "Mi gran noche", "artista": "Raphael", "artista_corto": "Raphael", "ms": 180866, "uri": "spotify:track:6Tnnk7MAnZiDx67DJN2hnx", "preview": "https://p.scdn.co/mp3-preview/d4af95c628e970e5a96357d3b1b26db5dc1efe40", "youtube_id": "IQcm_WcyAc4", "url": "https://open.spotify.com/track/6Tnnk7MAnZiDx67DJN2hnx"}, {"id": 30, "titulo": "ZORRA", "titulo_corto": "ZORRA", "artista": "Nebulossa", "artista_corto": "Nebulossa", "ms": 183577, "uri": "spotify:track:4ypCNolz6aRYZPO3UOGp8Z", "preview": "https://p.scdn.co/mp3-preview/9282f511673c6ef9466ac9ae3226c5567cc10e0f", "youtube_id": "vGS2M8Q9KIM", "url": "https://open.spotify.com/track/4ypCNolz6aRYZPO3UOGp8Z"}, {"id": 31, "titulo": "La Gata Bajo la Lluvia", "titulo_corto": "La Gata Bajo la Lluvia", "artista": "Rocío Dúrcal", "artista_corto": "Rocío Dúrcal", "ms": 219106, "uri": "spotify:track:2kfSFdq2h0xLXq01em1zc7", "preview": "https://p.scdn.co/mp3-preview/8869d678b93b2a659433f6491f7bb34d37866a8f", "youtube_id": "lOi4KbGuNJU", "url": "https://open.spotify.com/track/2kfSFdq2h0xLXq01em1zc7"}, {"id": 32, "titulo": "Lo Siento Mi Amor", "titulo_corto": "Lo Siento Mi Amor", "artista": "Rocío Jurado", "artista_corto": "Rocío Jurado", "ms": 228946, "uri": "spotify:track:5AdK2qMM89HU7sMHTG1n8k", "preview": "https://p.scdn.co/mp3-preview/34f69d0f937159f0f93b1288d3046be4460ebd7a", "youtube_id": "pY135rza3W0", "url": "https://open.spotify.com/track/5AdK2qMM89HU7sMHTG1n8k"}, {"id": 33, "titulo": "Ese Hombre", "titulo_corto": "Ese Hombre", "artista": "Rocío Jurado", "artista_corto": "Rocío Jurado", "ms": 269826, "uri": "spotify:track:0P6aGbsjMLZApc00ovM7aw", "preview": "https://p.scdn.co/mp3-preview/f781f3facbd75ae3a87be7596e985018ce4047fa", "youtube_id": "8y6-fvqhVvo", "url": "https://open.spotify.com/track/0P6aGbsjMLZApc00ovM7aw"}, {"id": 34, "titulo": "Todos Me Miran", "titulo_corto": "Todos Me Miran", "artista": "Gloria Trevi", "artista_corto": "Gloria Trevi", "ms": 204906, "uri": "spotify:track:4pmRDyDRRiZ5Pq7hm4WTpb", "preview": "https://p.scdn.co/mp3-preview/d00bf5043e952e343960607876fa6174ab0dc12f", "youtube_id": "MsAAbvwsvK4", "url": "https://open.spotify.com/track/4pmRDyDRRiZ5Pq7hm4WTpb"}, {"id": 35, "titulo": "Se fué", "titulo_corto": "Se fué", "artista": "Laura Pausini", "artista_corto": "Laura Pausini", "ms": 280666, "uri": "spotify:track:5oQadhkuEdEhtdVn0QceyZ", "preview": "https://p.scdn.co/mp3-preview/ca19e3fce74720221356ee5397dc089644cf083e", "youtube_id": "0817ycie-bk", "url": "https://open.spotify.com/track/5oQadhkuEdEhtdVn0QceyZ"}, {"id": 36, "titulo": "Europe's Living A Celebration - Versión Gala Eurovisión", "titulo_corto": "Europe's Living A Celebration", "artista": "Rosa López", "artista_corto": "Rosa López", "ms": 173346, "uri": "spotify:track:0wMCwhZ5feLebVj8hTEkhL", "preview": "https://p.scdn.co/mp3-preview/daa69ba4981c18107de57b0cb3b9084ba2c10ab7", "youtube_id": "YAtUd-GjCyE", "url": "https://open.spotify.com/track/0wMCwhZ5feLebVj8hTEkhL"}, {"id": 37, "titulo": "Cuando Tú Vas", "titulo_corto": "Cuando Tú Vas", "artista": "Chenoa", "artista_corto": "Chenoa", "ms": 198133, "uri": "spotify:track:2bPH3Ph0RHQuugStXcpyRP", "preview": "https://p.scdn.co/mp3-preview/bcb78b505bcfefad33f3987bc5d056f9ae16308a", "youtube_id": "E2N6UahtzK4", "url": "https://open.spotify.com/track/2bPH3Ph0RHQuugStXcpyRP"}, {"id": 38, "titulo": "Sarà perché ti amo", "titulo_corto": "Sarà perché ti amo", "artista": "Ricchi E Poveri", "artista_corto": "Ricchi E Poveri", "ms": 190693, "uri": "spotify:track:7037bX3jdaUWUAXL12CHGy", "preview": "https://p.scdn.co/mp3-preview/3bd3a126d03f7164ad8f6d9713b94c3666a1ae23", "youtube_id": "h9ozyZkI064", "url": "https://open.spotify.com/track/7037bX3jdaUWUAXL12CHGy"}, {"id": 39, "titulo": "20 de Enero", "titulo_corto": "20 de Enero", "artista": "La Oreja de Van Gogh", "artista_corto": "La Oreja de Van Gogh", "ms": 223000, "uri": "spotify:track:4XdePl1vOF1cYjTBYeYU9j", "preview": "https://p.scdn.co/mp3-preview/0708e2e20d88fdea1a60228ad97d1f9d7db9c604", "youtube_id": "QmhcdlvUIUY", "url": "https://open.spotify.com/track/4XdePl1vOF1cYjTBYeYU9j"}, {"id": 40, "titulo": "Waterloo", "titulo_corto": "Waterloo", "artista": "ABBA", "artista_corto": "ABBA", "ms": 168960, "uri": "spotify:track:3Dy4REq8O09IlgiwuHQ3sk", "preview": "https://p.scdn.co/mp3-preview/080b052681fc89186ce46d77e96032b53e7f0ee8", "youtube_id": "Sj_9CiNkkn4", "url": "https://open.spotify.com/track/3Dy4REq8O09IlgiwuHQ3sk"}, {"id": 41, "titulo": "Mamma Mia", "titulo_corto": "Mamma Mia", "artista": "ABBA", "artista_corto": "ABBA", "ms": 213266, "uri": "spotify:track:2TxCwUlqaOH3TIyJqGgR91", "preview": "https://p.scdn.co/mp3-preview/b578f8867804a1545b49ef6aea52bd0b8ec766d4", "youtube_id": "unfzfe8f9NI", "url": "https://open.spotify.com/track/2TxCwUlqaOH3TIyJqGgR91"}, {"id": 42, "titulo": "Soy rebelde", "titulo_corto": "Soy rebelde", "artista": "Jeanette", "artista_corto": "Jeanette", "ms": 193133, "uri": "spotify:track:1oaPnvUccVzyjsKFkuE7oA", "preview": "https://p.scdn.co/mp3-preview/270521c9c34e254316e793e1fccfc1b16118fbd0", "youtube_id": "RANXcQXrs-Q", "url": "https://open.spotify.com/track/1oaPnvUccVzyjsKFkuE7oA"}, {"id": 43, "titulo": "Agapimú (feat. Ana Belén)", "titulo_corto": "Agapimú", "artista": "Ojete Calor, Ana Belén", "artista_corto": "Ojete Calor", "ms": 164160, "uri": "spotify:track:59iTRaqCVSG6E382GYghBY", "preview": "https://p.scdn.co/mp3-preview/f8dd06c82ecfc3856b8906050e6ba3e22ca03e6b", "youtube_id": "E4np4dwOrXw", "url": "https://open.spotify.com/track/59iTRaqCVSG6E382GYghBY"}, {"id": 44, "titulo": "Felicidad", "titulo_corto": "Felicidad", "artista": "Al Bano And Romina Power", "artista_corto": "Al Bano & Romina", "ms": 215615, "uri": "spotify:track:05fIQPYkn7kNqSPu2q9s1Q", "preview": "https://p.scdn.co/mp3-preview/b4ff0f00bf4f340b40e86315b6a012a85c675547", "youtube_id": "LAt_Ccb2bJI", "url": "https://open.spotify.com/track/05fIQPYkn7kNqSPu2q9s1Q"}, {"id": 45, "titulo": "Mari Carmen", "titulo_corto": "Mari Carmen", "artista": "La Pegatina", "artista_corto": "La Pegatina", "ms": 145506, "uri": "spotify:track:4KOIPoWgg56YkP12E1aFoQ", "preview": "https://p.scdn.co/mp3-preview/e43de957751ebd2fad397ee1d08a62f0bc553e6e", "youtube_id": "8Vh4YVIOomI", "url": "https://open.spotify.com/track/4KOIPoWgg56YkP12E1aFoQ"}, {"id": 46, "titulo": "Sweet Caroline - Party Remix", "titulo_corto": "Sweet Caroline (Remix)", "artista": "DJ Ötzi", "artista_corto": "DJ Ötzi", "ms": 206613, "uri": "spotify:track:3HTgmcqR7nYtD7EmJ4hOLi", "preview": "https://p.scdn.co/mp3-preview/ddc860ad98044e6b8c9a3b7814e1019676218bf2", "youtube_id": "uOJ6J__L-fo", "url": "https://open.spotify.com/track/3HTgmcqR7nYtD7EmJ4hOLi"}, {"id": 47, "titulo": "Será porque te amo", "titulo_corto": "Será porque te amo", "artista": "DJ Matrix, Matt Joe, Carolina Marquez", "artista_corto": "DJ Matrix", "ms": 165000, "uri": "spotify:track:6evqjBt8Z8IIkRit5NX6QG", "preview": "https://p.scdn.co/mp3-preview/b82441617813c9fa4793f32bb2bf3f1a50263805", "youtube_id": "gOq5KAUCbiI", "url": "https://open.spotify.com/track/6evqjBt8Z8IIkRit5NX6QG"}, {"id": 48, "titulo": "Desátame", "titulo_corto": "Desátame", "artista": "Monica Naranjo", "artista_corto": "Monica Naranjo", "ms": 292400, "uri": "spotify:track:2a7Ufmq13NRMavrBYUN5Ex", "preview": "https://p.scdn.co/mp3-preview/3922142610d7cd5a8bdcf1023154608eb8fbe796", "youtube_id": "jpTOqGZCw10", "url": "https://open.spotify.com/track/2a7Ufmq13NRMavrBYUN5Ex"}, {"id": 49, "titulo": "El universo sobre mí", "titulo_corto": "El universo sobre mí", "artista": "Amaral", "artista_corto": "Amaral", "ms": 249680, "uri": "spotify:track:1jJn6iK6o2Vg7iUKHztRTk", "preview": "https://p.scdn.co/mp3-preview/7d88cc7f18ae1de0c028aed81e32ac7bbe3600ff", "youtube_id": "NFary9e9jo0", "url": "https://open.spotify.com/track/1jJn6iK6o2Vg7iUKHztRTk"}, {"id": 50, "titulo": "Man! I Feel Like A Woman!", "titulo_corto": "Man! I Feel Like A Woman!", "artista": "Shania Twain", "artista_corto": "Shania Twain", "ms": 233414, "uri": "spotify:track:2mqaYmF0XmV8egZB6jQOtN", "preview": "https://p.scdn.co/mp3-preview/2fe1d2c5df34b9ba727acc38db15e7415cd9a23a", "youtube_id": "ZJL4UGSbeFg", "url": "https://open.spotify.com/track/2mqaYmF0XmV8egZB6jQOtN"}, {"id": 51, "titulo": "Mocatriz", "titulo_corto": "Mocatriz", "artista": "Ojete Calor", "artista_corto": "Ojete Calor", "ms": 237228, "uri": "spotify:track:4FpRhJ7lOtetHL1zwZSYuP", "preview": "https://p.scdn.co/mp3-preview/39dfcbfde6a9b94c0a405d49d8c5b25fd9264b36", "youtube_id": "IQWaNjZgBho", "url": "https://open.spotify.com/track/4FpRhJ7lOtetHL1zwZSYuP"}, {"id": 52, "titulo": "¿Y Cómo Es Él?", "titulo_corto": "¿Y Cómo Es Él?", "artista": "José Luis Perales", "artista_corto": "José Luis Perales", "ms": 248000, "uri": "spotify:track:7aSxNjoVoAwNL7HDAKwGtC", "preview": "https://p.scdn.co/mp3-preview/36157c7908032a60e3dacb182617bf48465defab", "youtube_id": "XBA5J0B2Llg", "url": "https://open.spotify.com/track/7aSxNjoVoAwNL7HDAKwGtC"}, {"id": 53, "titulo": "Tú Volverás", "titulo_corto": "Tú Volverás", "artista": "Tessa", "artista_corto": "Tessa", "ms": 243560, "uri": "spotify:track:3rkE8IiFy0z893ZqUzDFLk", "preview": "https://p.scdn.co/mp3-preview/b0ac656fdf24c7a7a84d665ea9f585805f828359", "youtube_id": "82M49-nVY8w", "url": "https://open.spotify.com/track/3rkE8IiFy0z893ZqUzDFLk"}, {"id": 54, "titulo": "La chica yeyé", "titulo_corto": "La chica yeyé", "artista": "Ole Ole", "artista_corto": "Ole Ole", "ms": 151640, "uri": "spotify:track:468rYhT2EhvYSTgiLUJEhg", "preview": "https://p.scdn.co/mp3-preview/1db514b7826f09fb19a34f1dc44364e636e736a7", "youtube_id": "8lHjVcQde2w", "url": "https://open.spotify.com/track/468rYhT2EhvYSTgiLUJEhg"}, {"id": 55, "titulo": "Puedes Contar Conmigo", "titulo_corto": "Puedes Contar Conmigo", "artista": "La Oreja de Van Gogh", "artista_corto": "La Oreja de Van Gogh", "ms": 236786, "uri": "spotify:track:1hbWtHgRDG25DkmxE4I28V", "preview": "https://p.scdn.co/mp3-preview/641802934bcd3ed3804ce1cf973726a1c3a02325", "youtube_id": "4MB0CmrADaU", "url": "https://open.spotify.com/track/1hbWtHgRDG25DkmxE4I28V"}, {"id": 56, "titulo": "Ya Nada Volvera a Ser Como Antes", "titulo_corto": "Ya Nada Volvera a Ser Como Antes", "artista": "El Canto Del Loco", "artista_corto": "El Canto Del Loco", "ms": 175866, "uri": "spotify:track:55BClNby0SuB7MHxp1Tdn8", "preview": "https://p.scdn.co/mp3-preview/b71f1da117ed06c9635a04c26a59d1583ee0fbba", "youtube_id": "5PNlRnz-KU4", "url": "https://open.spotify.com/track/55BClNby0SuB7MHxp1Tdn8"}, {"id": 57, "titulo": "Mañana voy a Burgos", "titulo_corto": "Mañana voy a Burgos", "artista": "La Maravillosa Orquesta del Alcohol", "artista_corto": "La Maravillosa Orquesta del Alcohol", "ms": 144999, "uri": "spotify:track:1b6k2kXclRHK1egSEvf4iv", "preview": "https://p.scdn.co/mp3-preview/4bdfe527275e3cbaa11f3a0df26507d8c336bc42", "youtube_id": "KnuqXhlNFsw", "url": "https://open.spotify.com/track/1b6k2kXclRHK1egSEvf4iv"}, {"id": 58, "titulo": "La vida moderna (feat. Love of Lesbian)", "titulo_corto": "La vida moderna", "artista": "Veintiuno, Love of Lesbian", "artista_corto": "Veintiuno", "ms": 193746, "uri": "spotify:track:67oh7LlJZOzQiZ7mM2GtRm", "preview": "https://p.scdn.co/mp3-preview/d53222f05e15037ff9419d1dd255e5b1ffe81033", "youtube_id": "BTViivdQ0_o", "url": "https://open.spotify.com/track/67oh7LlJZOzQiZ7mM2GtRm"}, {"id": 59, "titulo": "Copenhague", "titulo_corto": "Copenhague", "artista": "Vetusta Morla", "artista_corto": "Vetusta Morla", "ms": 303693, "uri": "spotify:track:4bZEZhCq2kqUxnMacXVl5x", "preview": "https://p.scdn.co/mp3-preview/3bd5c7c693ffb412bb77e9fadaa12894a8f7f01a", "youtube_id": "4LEF7m8Ed8U", "url": "https://open.spotify.com/track/4bZEZhCq2kqUxnMacXVl5x"}, {"id": 60, "titulo": "Mira cómo vuelo", "titulo_corto": "Mira cómo vuelo", "artista": "Miss Caffeina", "artista_corto": "Miss Caffeina", "ms": 189360, "uri": "spotify:track:0q26YkYooQjbNyNXzGcHGP", "preview": "https://p.scdn.co/mp3-preview/514e20bf0edd1b069d960bb093ae038bd3f7c385", "youtube_id": "QP2mvrGY94g", "url": "https://open.spotify.com/track/0q26YkYooQjbNyNXzGcHGP"}, {"id": 61, "titulo": "Perra", "titulo_corto": "Perra", "artista": "Rigoberta Bandini", "artista_corto": "Rigoberta Bandini", "ms": 217800, "uri": "spotify:track:5Q27cpHUDQPttnB0xH7oBh", "preview": "https://p.scdn.co/mp3-preview/6436e2b0bbacaae5882b1f1530388a7b404ba8bf", "youtube_id": "3pcBMfJn93Y", "url": "https://open.spotify.com/track/5Q27cpHUDQPttnB0xH7oBh"}, {"id": 62, "titulo": "El cielo no entiende", "titulo_corto": "El cielo no entiende", "artista": "OBK", "artista_corto": "OBK", "ms": 229760, "uri": "spotify:track:648Myn15scOB98wpZ9jd3c", "preview": "https://p.scdn.co/mp3-preview/d7220d7c6b02ddfd90c058edcb4e60c622878121", "youtube_id": "_hrGNQ0k3LA", "url": "https://open.spotify.com/track/648Myn15scOB98wpZ9jd3c"}, {"id": 63, "titulo": "Pa' Llamar Tu Atención (feat. Mc Binn)", "titulo_corto": "Pa' Llamar Tu Atención", "artista": "C. Tangana, Mc Binn", "artista_corto": "C. Tangana", "ms": 177613, "uri": "spotify:track:2vEY3cNwXYxIG4fPAoN14q", "preview": "https://p.scdn.co/mp3-preview/03ad1ae9b8a87880d20063a19b7b5eef1e329b38", "youtube_id": "d0oLWETQS4s", "url": "https://open.spotify.com/track/2vEY3cNwXYxIG4fPAoN14q"}, {"id": 64, "titulo": "Llorando en la Limo (feat. Alizzz)", "titulo_corto": "Llorando en la Limo", "artista": "C. Tangana, Alizzz", "artista_corto": "C. Tangana", "ms": 139354, "uri": "spotify:track:3YURfhPPT7GipmI7pIj0m3", "preview": "https://p.scdn.co/mp3-preview/259f325c7b3bf5b6f35c3ada0100254c3c3f68b7", "youtube_id": "2kiT6MABnUo", "url": "https://open.spotify.com/track/3YURfhPPT7GipmI7pIj0m3"}, {"id": 65, "titulo": "Demasiadas Mujeres", "titulo_corto": "Demasiadas Mujeres", "artista": "C. Tangana", "artista_corto": "C. Tangana", "ms": 153960, "uri": "spotify:track:3GaGWoU1KfVqgl7vnRHP55", "preview": "https://p.scdn.co/mp3-preview/b7b0a48a22cf457a6a881f77a635d732b439760a", "youtube_id": "ZlFri4ez_lE", "url": "https://open.spotify.com/track/3GaGWoU1KfVqgl7vnRHP55"}, {"id": 66, "titulo": "Summercat", "titulo_corto": "Summercat", "artista": "Billie The Vision & The Dancers", "artista_corto": "Billie The Vision & The Dancers", "ms": 182360, "uri": "spotify:track:1uK7U9LJlSdz8Lm5eRn9EM", "preview": "https://p.scdn.co/mp3-preview/39628c8515e6ca5d763985443a1e4c6127f6304c", "youtube_id": "ebqqNqG91XM", "url": "https://open.spotify.com/track/1uK7U9LJlSdz8Lm5eRn9EM"}, {"id": 67, "titulo": "Héroes del Sábado", "titulo_corto": "Héroes del Sábado", "artista": "La Maravillosa Orquesta del Alcohol", "artista_corto": "La Maravillosa Orquesta del Alcohol", "ms": 244767, "uri": "spotify:track:5Wcz0MyZQa7tgPu62WMqzl", "preview": "https://p.scdn.co/mp3-preview/90e379d6c7b61e180b54da6c3fbd25fa706f68bb", "youtube_id": "6MS3Sp2A9cU", "url": "https://open.spotify.com/track/5Wcz0MyZQa7tgPu62WMqzl"}, {"id": 68, "titulo": "Los Tontos - Live at NPR's Tiny Desk", "titulo_corto": "Los Tontos (Tiny Desk)", "artista": "C. Tangana, Kiko Veneno", "artista_corto": "C. Tangana", "ms": 251558, "uri": "spotify:track:7s3ww2P0ShTAFLaVNVd7Rg", "preview": "https://p.scdn.co/mp3-preview/911a57845545eb713ac07de30cb40abcec24b533", "youtube_id": "9TWYdXwnnVo", "url": "https://open.spotify.com/track/7s3ww2P0ShTAFLaVNVd7Rg"}, {"id": 69, "titulo": "Grita", "titulo_corto": "Grita", "artista": "Jarabe De Palo", "artista_corto": "Jarabe De Palo", "ms": 212226, "uri": "spotify:track:7fLmPMKrplrYTE2y2RDvEE", "preview": "https://p.scdn.co/mp3-preview/7d4915e15d7a6385833818d7afe6675632fe60e3", "youtube_id": "21TfnF4m7os", "url": "https://open.spotify.com/track/7fLmPMKrplrYTE2y2RDvEE"}, {"id": 70, "titulo": "Son Sueños", "titulo_corto": "Son Sueños", "artista": "El Canto Del Loco", "artista_corto": "El Canto Del Loco", "ms": 230600, "uri": "spotify:track:0Gb0HHBCpDL3lYqaabpVu8", "preview": "https://p.scdn.co/mp3-preview/816be9415cfed8d3a255839c25ab731b9a094cc1", "youtube_id": "DWoRpJ_MVZk", "url": "https://open.spotify.com/track/0Gb0HHBCpDL3lYqaabpVu8"}, {"id": 71, "titulo": "Una Lluna A L'Aigua - Operación Triunfo 2018", "titulo_corto": "Una Lluna A L'Aigua", "artista": "Miki Núñez", "artista_corto": "Miki Núñez", "ms": 148950, "uri": "spotify:track:1qo345YBFwaOcmQt6Gv8er", "preview": "https://p.scdn.co/mp3-preview/88c65a3796f19731aa8159bbad9fe127a94390c2", "youtube_id": "Zq4RChSqXMo", "url": "https://open.spotify.com/track/1qo345YBFwaOcmQt6Gv8er"}, {"id": 72, "titulo": "Un Veneno", "titulo_corto": "Un Veneno", "artista": "C. Tangana, Niño de Elche", "artista_corto": "C. Tangana", "ms": 193109, "uri": "spotify:track:42C5Bbb4dHwS5OFMvtGkG2", "preview": "https://p.scdn.co/mp3-preview/5c024d9416f8054dcfd4a29cd87baa7517177640", "youtube_id": "h0Tb9VtVzVE", "url": "https://open.spotify.com/track/42C5Bbb4dHwS5OFMvtGkG2"}, {"id": 73, "titulo": "Inevitable", "titulo_corto": "Inevitable", "artista": "Shakira", "artista_corto": "Shakira", "ms": 193453, "uri": "spotify:track:2gxSaoTORdXmNLUpsNFbQk", "preview": "https://p.scdn.co/mp3-preview/200d5acf5bfc4bd437981252771ee066bbba6e8d", "youtube_id": "nYbcVK2jjXc", "url": "https://open.spotify.com/track/2gxSaoTORdXmNLUpsNFbQk"}, {"id": 74, "titulo": "Shallow", "titulo_corto": "Shallow", "artista": "Lady Gaga, Bradley Cooper", "artista_corto": "Lady Gaga", "ms": 215733, "uri": "spotify:track:2VxeLyX666F8uXCJ0dZF8B", "preview": "https://p.scdn.co/mp3-preview/ad2317459e4acec34d54fc34282089bfb58fc9c5", "youtube_id": "bo_efYhYU2A", "url": "https://open.spotify.com/track/2VxeLyX666F8uXCJ0dZF8B"}, {"id": 75, "titulo": "Ester Expósito", "titulo_corto": "Ester Expósito", "artista": "Dani Martín", "artista_corto": "Dani Martín", "ms": 213206, "uri": "spotify:track:4GKjSwmowWO082NGn11wNj", "preview": "https://p.scdn.co/mp3-preview/fa066861e0bbfae26f0c9f1f3413cb3a0b4bf725", "youtube_id": "Ya5Esk0CVv8", "url": "https://open.spotify.com/track/4GKjSwmowWO082NGn11wNj"}, {"id": 76, "titulo": "Todo me da igual", "titulo_corto": "Todo me da igual", "artista": "Pignoise, Taburete", "artista_corto": "Pignoise", "ms": 201603, "uri": "spotify:track:02Eog2P5yGBmQlNqJqnH9Y", "preview": "https://p.scdn.co/mp3-preview/0c69f4fdd467c81e4af555e955dcb3af21d11f31", "youtube_id": "ue-FnsqS5cM", "url": "https://open.spotify.com/track/02Eog2P5yGBmQlNqJqnH9Y"}, {"id": 77, "titulo": "Como Si Fueras a Morir Mañana", "titulo_corto": "Como Si Fueras a Morir Mañana", "artista": "Leiva", "artista_corto": "Leiva", "ms": 240984, "uri": "spotify:track:4aAfLSx9IthpC3Pw5pNk3E", "preview": "https://p.scdn.co/mp3-preview/7846aae3bf4d5c2af364dcc05b408d8dd29eb9ed", "youtube_id": "DMSTr9JOhBE", "url": "https://open.spotify.com/track/4aAfLSx9IthpC3Pw5pNk3E"}, {"id": 78, "titulo": "Los Perros", "titulo_corto": "Los Perros", "artista": "Arde Bogotá", "artista_corto": "Arde Bogotá", "ms": 229876, "uri": "spotify:track:15zPjWfZ6eUFMaL4aD5Gp8", "preview": "https://p.scdn.co/mp3-preview/0debffe7dc1f5ddf5bcf937692d5bd8f6ca8f72e", "youtube_id": "ZEcqxA3sVxQ", "url": "https://open.spotify.com/track/15zPjWfZ6eUFMaL4aD5Gp8"}, {"id": 79, "titulo": "Me Sabe Mal - Remix", "titulo_corto": "Me Sabe Mal (Remix)", "artista": "MARLENA, Bombai", "artista_corto": "MARLENA", "ms": 196969, "uri": "spotify:track:5tyngIB1CqMV6xWIfWRqEi", "preview": "https://p.scdn.co/mp3-preview/de637b13fb28259611919a619672a3d0938a60bc", "youtube_id": "84sejMY8Oe4", "url": "https://open.spotify.com/track/5tyngIB1CqMV6xWIfWRqEi"}, {"id": 80, "titulo": "El Bien", "titulo_corto": "El Bien", "artista": "Viva Suecia", "artista_corto": "Viva Suecia", "ms": 206226, "uri": "spotify:track:6IuZFiKCeyQINqL0Id3xF2", "preview": "https://p.scdn.co/mp3-preview/35df9b4b336f80faefcc4697c9afcd9da3546f2e", "youtube_id": "OYPPY9gZtwo", "url": "https://open.spotify.com/track/6IuZFiKCeyQINqL0Id3xF2"}, {"id": 81, "titulo": "Hablando en plata - 2003 Remastered Version", "titulo_corto": "Hablando en plata", "artista": "Melendi", "artista_corto": "Melendi", "ms": 185066, "uri": "spotify:track:7gHXpZ9RfD5ym9GZWlo35F", "preview": "https://p.scdn.co/mp3-preview/d6d69815046708ae1b174726d5dd57c65ec3bb24", "youtube_id": "nBsEUZGfb2Y", "url": "https://open.spotify.com/track/7gHXpZ9RfD5ym9GZWlo35F"}, {"id": 82, "titulo": "Por verte", "titulo_corto": "Por verte", "artista": "Pignoise, Despistaos", "artista_corto": "Pignoise", "ms": 187007, "uri": "spotify:track:4TAgaHT3t6AsqsiC0sQ1SL", "preview": "https://p.scdn.co/mp3-preview/426fd5db93a5f2a63fd7698f6115decdf32c177c", "youtube_id": "N9EePTYdZdk", "url": "https://open.spotify.com/track/4TAgaHT3t6AsqsiC0sQ1SL"}, {"id": 83, "titulo": "LA SEVILLANA - SEVILLANAS", "titulo_corto": "La Sevillana", "artista": "Omar Montes", "artista_corto": "Omar Montes", "ms": 220354, "uri": "spotify:track:6jsX9MWN6QAchvWZvZKmdR", "preview": "https://p.scdn.co/mp3-preview/9062f2f65c6115b373355f74c3d39bab391dd739", "youtube_id": "GJVtHm7VfRg", "url": "https://open.spotify.com/track/6jsX9MWN6QAchvWZvZKmdR"}, {"id": 84, "titulo": "Tu Calorro", "titulo_corto": "Tu Calorro", "artista": "Estopa", "artista_corto": "Estopa", "ms": 190626, "uri": "spotify:track:0DXI6c9tNWsI4tvUftkQN8", "preview": "https://p.scdn.co/mp3-preview/55576170acdf0ea5234a73eeb8244d1e3356c6f5", "youtube_id": "KV_t_4910OI", "url": "https://open.spotify.com/track/0DXI6c9tNWsI4tvUftkQN8"}, {"id": 85, "titulo": "Carolina - En directo 2000", "titulo_corto": "Carolina (directo)", "artista": "M-Clan", "artista_corto": "M-Clan", "ms": 263679, "uri": "spotify:track:4UtREbGYnd1nZLckEb5y8J", "preview": "https://p.scdn.co/mp3-preview/ed6f92ba2acfb2c5cae244871f962a83ce3ad8b2", "youtube_id": "hEKJnaHwihw", "url": "https://open.spotify.com/track/4UtREbGYnd1nZLckEb5y8J"}, {"id": 86, "titulo": "Todos Los Besos", "titulo_corto": "Todos Los Besos", "artista": "Los Rebujitos", "artista_corto": "Los Rebujitos", "ms": 239146, "uri": "spotify:track:0BQXMBMiFDuRgEp73vLNet", "preview": "https://p.scdn.co/mp3-preview/5ef607d641281cd6ac657799ea3d2a12a4850a53", "youtube_id": "_9pOsNrpY6c", "url": "https://open.spotify.com/track/0BQXMBMiFDuRgEp73vLNet"}, {"id": 87, "titulo": "Miedo", "titulo_corto": "Miedo", "artista": "M-Clan", "artista_corto": "M-Clan", "ms": 297106, "uri": "spotify:track:47oZRFceogtlw8Kcu5UGaj", "preview": "https://p.scdn.co/mp3-preview/ed92c39408f7c755122e59bb890415c5da40e025", "youtube_id": "iWOZ0_0SfmY", "url": "https://open.spotify.com/track/47oZRFceogtlw8Kcu5UGaj"}, {"id": 88, "titulo": "Turnedo", "titulo_corto": "Turnedo", "artista": "Ivan Ferreiro", "artista_corto": "Ivan Ferreiro", "ms": 278333, "uri": "spotify:track:541hgOF71B92Jpg4IU6kyx", "preview": "https://p.scdn.co/mp3-preview/5e7c55ab50fa39f054d14c53808b5f909e165f67", "youtube_id": "tqfZLeHmi30", "url": "https://open.spotify.com/track/541hgOF71B92Jpg4IU6kyx"}, {"id": 89, "titulo": "Paseo", "titulo_corto": "Paseo", "artista": "Estopa", "artista_corto": "Estopa", "ms": 216440, "uri": "spotify:track:6pWeJvzpQR1ihiUSJklOzD", "preview": "https://p.scdn.co/mp3-preview/2d81d82973939260f546d7f6f41c1832b308e46a", "youtube_id": "w3xgfoaD9KA", "url": "https://open.spotify.com/track/6pWeJvzpQR1ihiUSJklOzD"}, {"id": 90, "titulo": "Solo quiero bailar", "titulo_corto": "Solo quiero bailar", "artista": "Zenttric", "artista_corto": "Zenttric", "ms": 184333, "uri": "spotify:track:0HTyWmZkeC8nlGsPhmYt3I", "preview": "https://p.scdn.co/mp3-preview/703c5f9fb48a29f95ef15f9f71476ba6d3b77b05", "youtube_id": "XAmFdx99qC0", "url": "https://open.spotify.com/track/0HTyWmZkeC8nlGsPhmYt3I"}, {"id": 91, "titulo": "Nada que perder", "titulo_corto": "Nada que perder", "artista": "Pignoise", "artista_corto": "Pignoise", "ms": 197600, "uri": "spotify:track:0YSaKC66FGCWLxM9SoQA1f", "preview": "https://p.scdn.co/mp3-preview/742e53bb6fb9760784ec629dd7aad8d17ed2d52a", "youtube_id": "9TSiXgzi-hk", "url": "https://open.spotify.com/track/0YSaKC66FGCWLxM9SoQA1f"}, {"id": 92, "titulo": "It's Raining Men", "titulo_corto": "It's Raining Men", "artista": "Geri Halliwell", "artista_corto": "Geri Halliwell", "ms": 254640, "uri": "spotify:track:7q3qX7Ees3FZtRFJXWgPZs", "preview": "https://p.scdn.co/mp3-preview/e006ed2f49beb55b9e0746f12845cdf77ff536b5", "youtube_id": "JWFcFrrOMPQ", "url": "https://open.spotify.com/track/7q3qX7Ees3FZtRFJXWgPZs"}, {"id": 93, "titulo": "Como una Ola", "titulo_corto": "Como una Ola", "artista": "Rocío Jurado", "artista_corto": "Rocío Jurado", "ms": 261399, "uri": "spotify:track:4x1SuI9nPq9tWeEbaRDUsM", "preview": "https://p.scdn.co/mp3-preview/8b105e598d2b72d1cd7d4d1084329cbf5c868b6a", "youtube_id": "1YMwP8pBIfw", "url": "https://open.spotify.com/track/4x1SuI9nPq9tWeEbaRDUsM"}, {"id": 94, "titulo": "Como yo te amo", "titulo_corto": "Como yo te amo", "artista": "Raphael", "artista_corto": "Raphael", "ms": 279160, "uri": "spotify:track:2N1u2w7dbHt058hi7pIFjW", "preview": "https://p.scdn.co/mp3-preview/2c0ddaf8555edcddc6a9c590cd6d29d8c7adce7a", "youtube_id": "Qe80Szmcxso", "url": "https://open.spotify.com/track/2N1u2w7dbHt058hi7pIFjW"}, {"id": 95, "titulo": "Sobreviviré", "titulo_corto": "Sobreviviré", "artista": "Monica Naranjo", "artista_corto": "Monica Naranjo", "ms": 297640, "uri": "spotify:track:3xGon93gcCARQ4VgYgoirk", "preview": "https://p.scdn.co/mp3-preview/4fec492646110144ff0c87620390b8eca5506276", "youtube_id": "xErS7G3-tCQ", "url": "https://open.spotify.com/track/3xGon93gcCARQ4VgYgoirk"}, {"id": 96, "titulo": "El Principio de algo", "titulo_corto": "El Principio de algo", "artista": "La La Love You, Samuraï", "artista_corto": "La La Love You", "ms": 147907, "uri": "spotify:track:6tZI1nTl6m40HG5Rs7QuHL", "preview": "https://p.scdn.co/mp3-preview/7d1502c08337fcd9f1538ba764eba54c4771a757", "youtube_id": "XH9jnG1Ylwc", "url": "https://open.spotify.com/track/6tZI1nTl6m40HG5Rs7QuHL"}, {"id": 97, "titulo": "Rim Tim Tagi Dim", "titulo_corto": "Rim Tim Tagi Dim", "artista": "Baby Lasagna", "artista_corto": "Baby Lasagna", "ms": 179062, "uri": "spotify:track:5TswDbxMnxptgFTf6ZxvXQ", "preview": "https://p.scdn.co/mp3-preview/ae09dedf617df294dc767e51396a085e158c54c4", "youtube_id": "rO0DPFlrfDs", "url": "https://open.spotify.com/track/5TswDbxMnxptgFTf6ZxvXQ"}, {"id": 98, "titulo": "Exoplaneta", "titulo_corto": "Exoplaneta", "artista": "Arde Bogotá", "artista_corto": "Arde Bogotá", "ms": 232491, "uri": "spotify:track:68PEuXNjodWFts3Ph4BPVv", "preview": "https://p.scdn.co/mp3-preview/6b4904190916adf07148022ad93c9f5e0ec7a36a", "youtube_id": "HZgDUvxHvcw", "url": "https://open.spotify.com/track/68PEuXNjodWFts3Ph4BPVv"}], "orden": [13, 67, 10, 19, 90, 75, 68, 48, 70, 27, 83, 29, 11, 16, 47, 59, 30, 64, 20, 26, 4, 81, 17, 98, 34, 49, 38, 97, 35, 76, 40, 25, 78, 7, 57, 89, 63, 65, 5, 9, 32, 95, 74, 50, 23, 2, 66, 92, 54, 96, 39, 82, 14, 3, 33, 1, 71, 62, 94, 77, 53, 36, 79, 93, 85, 61, 60, 42, 37, 55, 73, 45, 18, 72, 46, 88, 80, 58, 21, 15, 56, 44, 52, 84, 8, 43, 31, 6, 24, 12, 41, 28, 51, 87, 22, 91, 86, 69], "cartones": [{"numero": 1, "codigo": "PAB-001", "ids": [84, 23, 33, 6, 38, 83, 1, 5, 76, 91, 51, 17, 30, 40, 56, 15, 57, 62, 82, 45, 24, 31, 59, 66, 58]}, {"numero": 2, "codigo": "PAB-002", "ids": [60, 18, 93, 86, 41, 88, 29, 73, 11, 19, 65, 46, 78, 79, 68, 37, 35, 44, 81, 53, 43, 50, 34, 3, 12]}, {"numero": 3, "codigo": "PAB-003", "ids": [55, 69, 98, 14, 71, 13, 80, 74, 70, 8, 63, 32, 20, 85, 22, 72, 92, 9, 48, 61, 26, 89, 21, 96, 2]}, {"numero": 4, "codigo": "PAB-004", "ids": [47, 42, 28, 4, 87, 59, 97, 10, 36, 52, 7, 64, 16, 54, 25, 49, 39, 27, 75, 95, 94, 77, 67, 32, 90]}, {"numero": 5, "codigo": "PAB-005", "ids": [82, 74, 24, 45, 85, 92, 17, 2, 46, 37, 57, 33, 76, 98, 38, 51, 22, 83, 6, 34, 48, 60, 42, 72, 78]}, {"numero": 6, "codigo": "PAB-006", "ids": [30, 5, 75, 18, 94, 9, 40, 41, 21, 1, 90, 15, 69, 95, 63, 62, 61, 53, 93, 8, 70, 16, 91, 96, 49]}, {"numero": 7, "codigo": "PAB-007", "ids": [54, 11, 27, 43, 65, 56, 23, 77, 55, 58, 10, 35, 13, 7, 47, 31, 44, 4, 12, 28, 3, 64, 67, 50, 36]}, {"numero": 8, "codigo": "PAB-008", "ids": [89, 39, 20, 25, 58, 14, 79, 87, 19, 80, 12, 88, 68, 97, 86, 84, 66, 81, 71, 29, 26, 45, 62, 52, 73]}, {"numero": 9, "codigo": "PAB-009", "ids": [43, 91, 92, 84, 78, 49, 52, 83, 65, 64, 98, 34, 38, 89, 75, 97, 50, 33, 82, 60, 66, 9, 74, 22, 28]}, {"numero": 10, "codigo": "PAB-010", "ids": [17, 36, 46, 35, 13, 42, 54, 32, 77, 51, 11, 47, 79, 70, 25, 16, 8, 48, 1, 4, 86, 63, 59, 53, 26]}, {"numero": 11, "codigo": "PAB-011", "ids": [7, 55, 95, 87, 20, 6, 61, 39, 18, 85, 90, 2, 24, 40, 68, 80, 57, 69, 71, 44, 41, 19, 94, 23, 72]}, {"numero": 12, "codigo": "PAB-012", "ids": [56, 14, 67, 10, 59, 5, 21, 72, 81, 88, 93, 31, 85, 30, 73, 79, 3, 29, 37, 96, 97, 76, 15, 98, 27]}, {"numero": 13, "codigo": "PAB-013", "ids": [30, 14, 93, 63, 37, 41, 47, 80, 43, 70, 86, 20, 28, 36, 67, 21, 15, 58, 17, 50, 69, 3, 35, 76, 2]}, {"numero": 14, "codigo": "PAB-014", "ids": [40, 52, 68, 33, 18, 22, 19, 23, 66, 57, 71, 32, 92, 13, 89, 25, 73, 44, 75, 65, 88, 55, 24, 31, 78]}, {"numero": 15, "codigo": "PAB-015", "ids": [5, 7, 62, 56, 95, 10, 81, 29, 1, 82, 83, 54, 64, 42, 60, 46, 48, 90, 11, 74, 49, 26, 38, 27, 61]}, {"numero": 16, "codigo": "PAB-016", "ids": [91, 57, 81, 8, 9, 62, 77, 98, 74, 6, 12, 34, 39, 51, 17, 16, 86, 96, 87, 84, 88, 53, 4, 94, 45]}, {"numero": 17, "codigo": "PAB-017", "ids": [14, 72, 12, 70, 15, 19, 32, 59, 28, 47, 84, 90, 63, 30, 64, 51, 16, 23, 54, 71, 95, 66, 65, 42, 97]}, {"numero": 18, "codigo": "PAB-018", "ids": [77, 27, 91, 6, 39, 89, 55, 5, 69, 85, 20, 53, 7, 46, 58, 43, 24, 73, 48, 56, 92, 75, 60, 45, 2]}, {"numero": 19, "codigo": "PAB-019", "ids": [18, 67, 10, 78, 40, 9, 44, 35, 83, 29, 87, 33, 61, 79, 11, 4, 25, 76, 49, 1, 37, 13, 3, 38, 31]}, {"numero": 20, "codigo": "PAB-020", "ids": [93, 8, 80, 34, 41, 50, 26, 43, 13, 21, 82, 88, 23, 52, 79, 94, 42, 76, 96, 68, 36, 65, 18, 22, 95]}, {"numero": 21, "codigo": "PAB-021", "ids": [27, 12, 36, 28, 1, 78, 87, 14, 68, 35, 41, 6, 90, 33, 24, 70, 72, 48, 83, 53, 74, 54, 30, 16, 92]}, {"numero": 22, "codigo": "PAB-022", "ids": [58, 61, 84, 40, 17, 11, 69, 37, 38, 20, 55, 10, 62, 56, 59, 3, 91, 66, 86, 60, 46, 8, 81, 85, 67]}, {"numero": 23, "codigo": "PAB-023", "ids": [77, 89, 63, 22, 52, 15, 34, 25, 45, 49, 5, 47, 73, 98, 82, 94, 57, 31, 80, 7, 21, 26, 51, 50, 44]}, {"numero": 24, "codigo": "PAB-024", "ids": [82, 4, 96, 88, 93, 64, 2, 41, 29, 9, 3, 63, 97, 58, 54, 32, 75, 10, 39, 84, 98, 49, 19, 76, 71]}, {"numero": 25, "codigo": "PAB-025", "ids": [4, 34, 18, 44, 60, 85, 62, 9, 96, 20, 74, 56, 2, 77, 48, 33, 72, 19, 61, 45, 30, 95, 97, 69, 83]}, {"numero": 26, "codigo": "PAB-026", "ids": [68, 67, 59, 55, 17, 37, 6, 52, 39, 71, 40, 66, 28, 14, 64, 5, 70, 26, 90, 13, 57, 94, 22, 86, 89]}, {"numero": 27, "codigo": "PAB-027", "ids": [87, 29, 65, 79, 50, 31, 51, 81, 43, 25, 7, 36, 8, 80, 21, 46, 12, 38, 16, 92, 91, 42, 11, 24, 93]}, {"numero": 28, "codigo": "PAB-028", "ids": [73, 24, 23, 70, 89, 47, 79, 1, 37, 78, 75, 54, 83, 15, 53, 27, 18, 32, 91, 45, 44, 33, 35, 25, 17]}, {"numero": 29, "codigo": "PAB-029", "ids": [71, 10, 64, 11, 93, 76, 61, 16, 90, 52, 53, 98, 48, 43, 92, 26, 65, 96, 49, 69, 72, 12, 15, 27, 80]}, {"numero": 30, "codigo": "PAB-030", "ids": [78, 68, 63, 84, 23, 19, 14, 88, 28, 51, 1, 75, 36, 7, 55, 3, 5, 87, 86, 30, 56, 50, 67, 81, 32]}]};
+const $ = (id) => document.getElementById(id);
+const porId = new Map(D.canciones.map(c => [c.id, c]));
+const TOTAL = D.orden.length;
+const NCOL = D.columnas, NFIL = D.filas;
+const TITULO = D.titulo || D.playlist;
+const COLORES = ["#ff4d80","#ff9f1c","#ffd166","#00e0c0","#5a8cff","#b46bff"];
+
+let idx = -1;
+let modo = "spotify";
+let card = D.cartones[0];
+
+document.title = "Bingo Musical · " + TITULO;
+$("plName").textContent = TITULO;
+$("tot").textContent = TOTAL;
+
+/* ----------------------- confeti de fondo ---------------------------- */
+(function fondoConfeti(){
+  const emojis = ["🎵","🎶","🎉","🎈","✨","🎤","🪩","🎊"];
+  const caja = $("floaters");
+  for(let i = 0; i < 11; i++){
+    const d = document.createElement("div");
+    d.className = "floater";
+    d.textContent = emojis[i % emojis.length];
+    d.style.left = (Math.random() * 96) + "vw";
+    d.style.fontSize = (14 + Math.random() * 16) + "px";
+    d.style.animationDuration = (14 + Math.random() * 18) + "s";
+    d.style.animationDelay = (-Math.random() * 20) + "s";
+    caja.appendChild(d);
+  }
+})();
+
+/* --------------------- estallido al hacer linea ---------------------- */
+function estallido(){
+  const caja = $("burst");
+  const origen = {x: window.innerWidth / 2, y: window.innerHeight * 0.32};
+  for(let i = 0; i < 70; i++){
+    const p = document.createElement("i");
+    p.className = "conf";
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 120 + Math.random() * Math.min(window.innerWidth, 620) * 0.55;
+    p.style.left = origen.x + "px";
+    p.style.top = origen.y + "px";
+    p.style.background = COLORES[i % COLORES.length];
+    p.style.width = (6 + Math.random() * 8) + "px";
+    p.style.height = (8 + Math.random() * 10) + "px";
+    p.style.borderRadius = Math.random() > .6 ? "50%" : "2px";
+    p.style.setProperty("--dx", Math.cos(ang) * dist + "px");
+    p.style.setProperty("--dy", (Math.sin(ang) * dist + 220) + "px");
+    p.style.setProperty("--rot", (Math.random() * 900 - 450) + "deg");
+    caja.appendChild(p);
+    setTimeout(() => p.remove(), 2000);
+  }
+}
+
+/* ------------------------- estado persistente ------------------------ */
+const KEY = "bingo-" + TITULO + "-" + TOTAL;
+function guardar(){ try{ localStorage.setItem(KEY, JSON.stringify({idx, orden: D.orden, modo})); }catch(e){} }
+function cargar(){
+  try{
+    const s = JSON.parse(localStorage.getItem(KEY) || "null");
+    if(s && Array.isArray(s.orden) && s.orden.length === TOTAL && s.idx >= -1 && s.idx < TOTAL){
+      D.orden = s.orden; idx = s.idx;
+      if(s.modo === "youtube") modo = "youtube";
+    }
+  }catch(e){}
+}
+
+const esLlamada = (id) => idx >= 0 && D.orden.indexOf(id) <= idx;
+const esc = (s) => String(s).replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+/* ------------------------------ render ------------------------------- */
+function pintarActual(){
+  const el = $("now");
+  if(idx < 0){
+    el.classList.add("empty");
+    $("num").textContent = "—";
+    $("title").textContent = "Todo listo para empezar";
+    $("artist").textContent = "Pulsa «Empezar» y dale al play";
+    $("next").textContent = "▶ Empezar";
+    $("prev").disabled = true;
+    $("nextup").innerHTML = "Siguiente: <b>" + esc(porId.get(D.orden[0]).titulo) + "</b>";
+  } else {
+    const c = porId.get(D.orden[idx]);
+    el.classList.remove("empty");
+    el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+    $("num").textContent = String(idx + 1);
+    $("title").textContent = c.titulo;
+    $("artist").textContent = c.artista;
+    $("next").textContent = idx + 1 < TOTAL ? "▶ Siguiente canción" : "Fin de la lista";
+    $("next").disabled = idx + 1 >= TOTAL;
+    $("prev").disabled = false;
+    $("nextup").innerHTML = idx + 1 < TOTAL
+      ? "Siguiente: <b>" + esc(porId.get(D.orden[idx + 1]).titulo) + "</b>"
+      : "No quedan canciones. ¡Bingo! 🎉";
+  }
+  const hechas = idx + 1;
+  cargarAudio(idx >= 0 ? porId.get(D.orden[idx]) : null);
+  $("cnt").textContent = hechas;
+  $("cardNum").textContent = String(card.numero).padStart(2, "0");
+  $("bar").style.width = (hechas / TOTAL * 100) + "%";
+  $("pct").textContent = Math.round(hechas / TOTAL * 100) + "%";
+  $("left").textContent = (TOTAL - hechas) + " sin cantar";
+  pintarLista();
+  pintarRecientes();
+  pintarCarton();
+}
+
+function pintarRecientes(){
+  const el = $("recent");
+  if(idx < 0){
+    el.innerHTML = `<p class="vacio">Aún no has cantado ninguna canción. ¡Dale al play! 🎵</p>`;
+    return;
+  }
+  const filas = [];
+  for(let i = idx; i >= Math.max(0, idx - 5); i--){
+    const c = porId.get(D.orden[i]);
+    filas.push(`<div class="r"><span class="rn">${String(i + 1).padStart(2,"0")}</span>
+      <span class="rt">${esc(c.titulo)}<em>${esc(c.artista_corto)}</em></span></div>`);
+  }
+  el.innerHTML = filas.join("");
+}
+
+function pintarLista(){
+  const q = $("search").value.trim().toLowerCase();
+  const filas = [];
+  D.orden.forEach((id, i) => {
+    const c = porId.get(id);
+    if(q && !(c.titulo.toLowerCase().includes(q) || c.artista.toLowerCase().includes(q))) return;
+    const done = i <= idx;
+    filas.push(`<div class="row ${done?"done":""} ${i===idx?"now":""}">
+      <span class="dot"></span><span class="n">${String(i+1).padStart(2,"0")}</span>
+      <span class="t">${esc(c.titulo)}</span><span class="ar">${esc(c.artista_corto)}</span></div>`);
+  });
+  $("list").innerHTML = filas.length ? filas.join("") : `<div class="row"><span class="t">Sin resultados</span></div>`;
+  const activo = $("list").querySelector(".row.now");
+  if(activo){
+    const lista = $("list");
+    const lr = lista.getBoundingClientRect(), ar = activo.getBoundingClientRect();
+    if(ar.top < lr.top || ar.bottom > lr.bottom){
+      lista.scrollTop += (ar.top - lr.top) - (lista.clientHeight - activo.offsetHeight) / 2;
+    }
+  }
+}
+
+/* --------------------------- comprobar carton ------------------------ */
+const sel = $("cardSel");
+D.cartones.forEach(ct => {
+  const o = document.createElement("option");
+  o.value = ct.numero;
+  o.textContent = `Cartón ${String(ct.numero).padStart(2,"0")} · ${ct.codigo}`;
+  sel.appendChild(o);
+});
+sel.value = card.numero;
+sel.addEventListener("change", () => {
+  card = D.cartones.find(c => c.numero === Number(sel.value));
+  $("cardNum").textContent = String(card.numero).padStart(2, "0");
+  pintarCarton();
+});
+
+let ultimoEstado = "";
+function pintarCarton(){
+  if(!card) return;
+  const celdas = [];
+  let k = 0;
+  for(let f = 0; f < NFIL; f++){
+    for(let col = 0; col < NCOL; col++){
+      const centro = D.centroLibre && f === Math.floor(NFIL/2) && col === Math.floor(NCOL/2);
+      if(centro){ celdas.push({f, col, libre:true}); continue; }
+      const c = porId.get(card.ids[k++]);
+      celdas.push({f, col, c, done: esLlamada(c.id)});
+    }
+  }
+
+  const lineas = [];
+  for(let f = 0; f < NFIL; f++) lineas.push(celdas.filter(x => x.f === f));
+  for(let col = 0; col < NCOL; col++) lineas.push(celdas.filter(x => x.col === col));
+  lineas.push(celdas.filter(x => x.f === x.col));
+  lineas.push(celdas.filter(x => x.f + x.col === NFIL - 1));
+
+  const resueltas = lineas.filter(cs => cs.every(x => x.libre || x.done));
+  const marcadas = celdas.filter(x => x.libre || x.done).length;
+  const bingo = marcadas === celdas.length;
+  const linea = resueltas.length > 0;
+
+  const ganadoras = new Set();
+  resueltas.forEach(cs => cs.forEach(x => ganadoras.add(x.f + "-" + x.col)));
+
+  $("mini").innerHTML = celdas.map(x => {
+    if(x.libre) return `<div class="cell free ${ganadoras.has(x.f+"-"+x.col)?"win":""}">GRATIS<br>🎵</div>`;
+    return `<div class="cell ${x.done?"done":""} ${ganadoras.has(x.f+"-"+x.col)?"win":""}"
+      title="${esc(x.c.titulo)} — ${esc(x.c.artista)}">
+      <span class="t">${esc(x.c.titulo_corto)}</span><span class="a">${esc(x.c.artista_corto)}</span></div>`;
+  }).join("");
+
+  let txt;
+  if(bingo){
+    txt = `🎉 ¡BINGO! Cartón ${String(card.numero).padStart(2,"0")} completo (${marcadas}/${celdas.length}).`;
+  } else if(linea){
+    txt = `✨ ¡LÍNEA! Cartón ${String(card.numero).padStart(2,"0")} · ${marcadas}/${celdas.length} casillas.`;
+  } else {
+    let mejor = {faltan: 99};
+    lineas.forEach(cs => {
+      const faltan = cs.filter(x => !x.libre && !x.done).length;
+      if(faltan < mejor.faltan) mejor = {faltan};
+    });
+    txt = `Cartón ${String(card.numero).padStart(2,"0")} · <b>${marcadas}/${celdas.length}</b> casillas · a la línea más cercana le faltan <b>${mejor.faltan}</b>.`;
+  }
+
+  const nuevo = (bingo ? "bingo" : linea ? "linea" : "nada") + card.numero;
+  if(nuevo !== ultimoEstado && (bingo || linea)) estallido();
+  ultimoEstado = nuevo;
+
+  const st = $("cardStatus");
+  st.innerHTML = txt;
+  st.className = "status" + (bingo || linea ? " ok" : "");
+}
+
+/* ---------------------------- reproductor ---------------------------- */
+const audio = $("audio");
+let durAudio = 0;
+
+function mmss(s){
+  if(!isFinite(s) || s < 0) s = 0;
+  s = Math.floor(s);
+  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+
+function pintarTiempo(){
+  const d = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : durAudio;
+  $("ptime").textContent = mmss(audio.currentTime) + " / " + (d ? mmss(d) : "0:00");
+  $("pfill").style.width = (d ? Math.min(100, audio.currentTime / d * 100) : 0) + "%";
+}
+
+let ytVideo = null;
+
+function cancionActual(){
+  return idx >= 0 ? porId.get(D.orden[idx]) : null;
+}
+
+function aplicarModo(){
+  const yt = modo === "youtube";
+  $("tabSpoti").classList.toggle("on", !yt);
+  $("tabYt").classList.toggle("on", yt);
+  $("tabSpoti").setAttribute("aria-pressed", String(!yt));
+  $("tabYt").setAttribute("aria-pressed", String(yt));
+  $("paneSpoti").hidden = yt;
+  $("paneYt").hidden = !yt;
+}
+
+function montarYoutube(c){
+  const box = $("ytbox");
+  box.textContent = "";
+  ytVideo = null;
+
+  // YouTube rechaza los iframes cuando la pagina se sirve desde una IP
+  // (127.0.0.1, 192.168...) o desde file://
+  if(location.protocol === "file:"){
+    box.innerHTML = '<p class="ytmsg">YouTube necesita que el panel se abra con el servidor local.' +
+      '<br>Mira el LEEME: <b>python -m http.server 8777</b></p>';
+    return;
+  }
+  if(location.hostname === "127.0.0.1"){
+    box.innerHTML = '<p class="ytmsg">YouTube no deja reproducir desde <b>127.0.0.1</b>.' +
+      '<br><a href="#" id="irLocalhost">Abrir el panel en localhost →</a></p>';
+    const ir = $("irLocalhost");
+    if(ir) ir.addEventListener("click", (e) => {
+      e.preventDefault();
+      const u = new URL(location.href);
+      u.hostname = "localhost";
+      u.hash = "estado=" + encodeURIComponent(JSON.stringify({idx, orden: D.orden, modo}));
+      location.href = u.toString();
+    });
+    return;
+  }
+  if(/^\d{1,3}(\.\d{1,3}){3}$/.test(location.hostname) || location.hostname.includes(":")){
+    box.innerHTML = '<p class="ytmsg">YouTube no deja reproducir desde una dirección IP.' +
+      '<br>Abre el panel con el nombre del equipo (por ejemplo <b>http://mi-pc:8777</b>).</p>';
+    return;
+  }
+
+  if(!c){
+    box.innerHTML = '<p class="ytmsg">Elige una canción</p>';
+    return;
+  }
+  if(!c.youtube_id){
+    box.innerHTML = '<p class="ytmsg">Esta canción no tiene vídeo</p>';
+    return;
+  }
+  ytVideo = c.youtube_id;
+  const f = document.createElement("iframe");
+  f.src = "https://www.youtube.com/embed/" + encodeURIComponent(c.youtube_id) +
+          "?rel=0&modestbranding=1&playsinline=1&autoplay=0";
+  f.title = c.titulo + " · " + c.artista;
+  f.setAttribute("allow",
+    "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share");
+  f.setAttribute("allowfullscreen", "");
+  f.referrerPolicy = "strict-origin-when-cross-origin";
+  box.appendChild(f);
+}
+
+function setModo(m){
+  if(m === modo) return;
+  const c = cancionActual();
+  if(m === "youtube" && (!c || !c.youtube_id)) return;
+  modo = m;
+  if(modo === "spotify"){
+    $("ytbox").textContent = "";   // quita el iframe: corta el video
+    ytVideo = null;
+  } else {
+    audio.pause();
+    montarYoutube(c);
+  }
+  aplicarModo();
+  guardar();
+}
+
+function cargarAudio(c){
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+  durAudio = 0;
+  $("play").textContent = "▶";
+  $("play").disabled = true;
+  $("replay").disabled = true;
+  $("pfill").style.width = "0%";
+  $("ptime").textContent = "0:00";
+  $("tabYt").disabled = !c || !c.youtube_id;
+  $("tabYt").title = !c ? "Vídeo de YouTube"
+    : c.youtube_id ? "Ver el vídeo en YouTube" : "Sin vídeo para esta canción";
+
+  if(!c){
+    if(modo === "youtube"){ modo = "spotify"; aplicarModo(); }
+    montarYoutube(null);
+    return;
+  }
+
+  if(c.preview){
+    audio.src = c.preview;
+    audio.load();
+    $("play").disabled = false;
+    $("replay").disabled = false;
+  } else {
+    $("ptime").textContent = "sin audio";
+  }
+
+  if(!c.youtube_id && modo === "youtube"){ modo = "spotify"; aplicarModo(); }
+  if(modo === "youtube") montarYoutube(c);
+}
+
+audio.addEventListener("play", () => { $("play").textContent = "⏸"; });
+audio.addEventListener("pause", () => { $("play").textContent = "▶"; });
+audio.addEventListener("ended", () => { $("play").textContent = "▶"; pintarTiempo(); });
+audio.addEventListener("timeupdate", pintarTiempo);
+audio.addEventListener("loadedmetadata", () => { durAudio = audio.duration; pintarTiempo(); });
+audio.addEventListener("error", () => {
+  if(!audio.getAttribute("src")) return;
+  $("ptime").textContent = "sin audio";
+  $("play").disabled = true;
+});
+
+$("play").addEventListener("click", () => {
+  if(!audio.src) return;
+  if(audio.paused) audio.play().catch(() => { $("ptime").textContent = "no se pudo"; });
+  else audio.pause();
+});
+$("replay").addEventListener("click", () => {
+  if(!audio.src) return;
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+});
+$("pbar").addEventListener("click", (e) => {
+  if(!audio.duration || !isFinite(audio.duration)) return;
+  const r = $("pbar").getBoundingClientRect();
+  const pct = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+  audio.currentTime = pct * audio.duration;
+});
+$("tabSpoti").addEventListener("click", () => setModo("spotify"));
+$("tabYt").addEventListener("click", () => setModo("youtube"));
+
+/* ---------------------------- controles ------------------------------ */
+function siguiente(){
+  if(idx + 1 >= TOTAL) return;
+  idx++; guardar(); pintarActual();
+}
+function anterior(){
+  if(idx < 0) return;
+  idx--; guardar(); pintarActual();
+}
+function reiniciar(){
+  if(!confirm("¿Reiniciar la partida? Se desmarcan todas las canciones y se mantiene el mismo orden.")) return;
+  idx = -1; ultimoEstado = ""; guardar(); pintarActual();
+}
+function mezclar(){
+  if(!confirm("¿Empezar una nueva partida? Se mezclan las canciones y se desmarcan todas.")) return;
+  const arr = D.orden.slice();
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  D.orden = arr;
+  idx = -1;
+  ultimoEstado = "";
+  guardar();
+  pintarActual();
+}
+
+$("next").addEventListener("click", siguiente);
+$("prev").addEventListener("click", anterior);
+$("reset").addEventListener("click", reiniciar);
+$("shuffle").addEventListener("click", mezclar);
+$("search").addEventListener("input", pintarLista);
+
+document.addEventListener("keydown", (e) => {
+  if(e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  if(e.code === "Space" || e.code === "ArrowRight"){ e.preventDefault(); siguiente(); }
+  else if(e.code === "ArrowLeft"){ e.preventDefault(); anterior(); }
+  else if(e.key.toLowerCase() === "p" && modo === "spotify"){ $("play").click(); }
+  else if(e.key.toLowerCase() === "r"){ reiniciar(); }
+});
+
+/* Si venimos de 127.0.0.1 con el estado en el hash, lo recuperamos. */
+(function estadoDesdeLaUrl(){
+  const m = location.hash.match(/^#estado=(.+)$/);
+  if(!m) return;
+  try{
+    const s = JSON.parse(decodeURIComponent(m[1]));
+    if(s && Array.isArray(s.orden) && s.orden.length === TOTAL && s.idx >= -1 && s.idx < TOTAL){
+      localStorage.setItem(KEY, JSON.stringify(s));
+    }
+  }catch(e){}
+  history.replaceState(null, "", location.pathname + location.search);
+})();
+
+cargar();
+aplicarModo();
+pintarActual();
+</script>
+</body>
+</html>
