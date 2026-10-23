@@ -205,7 +205,7 @@
         <p class="sub">Panel del presentador · una pulsación por canción 🎵</p>
       </div>
     </div>
-    <div class="badge">🎤 Sonando <b id="cnt">0</b><span class="sep"> de </span><b id="tot">0</b> · 🎟️ Cartón <b id="cardNum">–</b></div>
+    <div class="badge">🎤 Sonando <b id="cnt">0</b><span class="sep"> de </span><b id="tot">0</b></div>
   </header>
 
   <div class="grid">
@@ -356,7 +356,6 @@ function pintarActual(){
   const hechas = idx + 1;
   cargarAudio(idx >= 0 ? porId.get(D.orden[idx]) : null);
   $("cnt").textContent = hechas;
-  $("cardNum").textContent = String(card.numero).padStart(2, "0");
   $("bar").style.width = (hechas / TOTAL * 100) + "%";
   $("pct").textContent = Math.round(hechas / TOTAL * 100) + "%";
   $("left").textContent = (TOTAL - hechas) + " sin cantar";
@@ -413,7 +412,6 @@ D.cartones.forEach(ct => {
 sel.value = card.numero;
 sel.addEventListener("change", () => {
   card = D.cartones.find(c => c.numero === Number(sel.value));
-  $("cardNum").textContent = String(card.numero).padStart(2, "0");
   pintarCarton();
 });
 
