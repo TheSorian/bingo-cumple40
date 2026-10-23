@@ -120,8 +120,6 @@
           background:rgba(255,255,255,.03)}
   .nextup b{color:var(--text)}
   .hint{color:var(--muted);font-size:12px;margin-top:12px;line-height:1.6}
-  .hint a{color:var(--teal);font-weight:700;text-decoration:none}
-  .hint a:hover{text-decoration:underline}
   kbd{background:rgba(255,255,255,.08);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px;font-size:11px}
 
   h2{font-size:15px;margin:0 0 14px;letter-spacing:.2px}
@@ -160,6 +158,13 @@
   .row.done .dot{background:var(--teal);box-shadow:0 0 8px var(--teal)}
 
   .foot{margin-top:24px;text-align:center;color:#6b6085;font-size:12px}
+  .foot-credit{margin:0}
+  .pdfs{margin:14px 0 0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+  .pdfs span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6b6085;margin-right:2px}
+  .pdfs a{display:inline-flex;align-items:center;padding:6px 13px;border-radius:999px;
+        border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.04);color:#cfc6e4;
+        font-size:12px;font-weight:600;text-decoration:none;transition:.18s}
+  .pdfs a:hover{border-color:rgba(0,224,192,.5);color:var(--teal);background:rgba(0,224,192,.08)}
 
   @media (max-width:520px){
     body{padding:12px 12px 55px}
@@ -177,6 +182,7 @@
     .pane{gap:8px;margin-top:8px}
     .play{width:42px;height:42px}
     .ptime{min-width:62px;font-size:10px}
+    .pdfs span{width:100%;margin:0 0 2px}
   }
 
   .recent .r{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.09)}
@@ -244,7 +250,6 @@
 
       <div class="nextup" id="nextup">Siguiente: <b>—</b></div>
       <p class="hint">Atajos: <kbd>espacio</kbd> o <kbd>→</kbd> siguiente · <kbd>←</kbd> anterior · <kbd>P</kbd> reproducir · <kbd>R</kbd> reiniciar.</p>
-      <p class="hint">Para imprimir: <a id="pdfCartones" href="salida/cartones_bingo_musical.pdf">Cartones</a> · <a id="pdfHoja" href="salida/hoja_presentador.pdf">Hoja de control</a> · <a id="pdfInstrucciones" href="salida/instrucciones_bingo_musical.pdf">Instrucciones</a></p>
     </section>
 
     <section class="card">
@@ -269,7 +274,10 @@
     </div>
   </div>
 
-  <p class="foot">Generado a partir de la playlist de Spotify · orden aleatorio reproducible · ¡a cantar! 🎉</p>
+  <div class="foot">
+    <p class="foot-credit">Generado a partir de la playlist de Spotify · orden aleatorio reproducible · ¡a cantar! 🎉</p>
+    <p class="pdfs"><span>Para imprimir</span><a id="pdfCartones" href="salida/cartones_bingo_musical.pdf">Cartones</a><a id="pdfHoja" href="salida/hoja_presentador.pdf">Hoja de control</a><a id="pdfInstrucciones" href="salida/instrucciones_bingo_musical.pdf">Instrucciones</a></p>
+  </div>
 </div>
 
 <script>
